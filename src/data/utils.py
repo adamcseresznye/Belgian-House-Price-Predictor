@@ -7,7 +7,7 @@ import numpy as np
 
 class Configuration:
     VER = 1
-    RAW_DATA_PATH = Path.cwd().parent.joinpath("data/raw")
+    RAW_DATA_PATH = Path.cwd().parents[1].joinpath("data/raw")
     features_to_keep_sales = [
         "day_of_retrieval",
         "ad_url",

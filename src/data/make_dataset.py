@@ -288,6 +288,7 @@ def immoweb_scraping_pipeline(
         time.sleep(2)
 
     complete_dataset = pd.concat(all_tables, axis=0)
+
     complete_dataset.to_csv(
         filepath.joinpath(f"complete_dataset_{str(pd.Timestamp.now())[:10]}.csv"),
         index=False,
@@ -302,6 +303,7 @@ def immoweb_scraping_pipeline(
 last_page = 4
 complete_dataset = immoweb_scraping_pipeline(
     path=utils.Configuration.RAW_DATA_PATH,
+    # path=Path("C://Users//s0212777//OneDrive - Universiteit Antwerpen//Jupyter_projects//Articles//house_price_prediction//data//raw"),
     kind_of_apartment="for_sale",
     session=session,
     last_page=last_page,
