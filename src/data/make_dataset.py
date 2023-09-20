@@ -301,7 +301,7 @@ def immoweb_scraping_pipeline(
 
 last_page = 4
 complete_dataset = immoweb_scraping_pipeline(
-    path=r"C:\Users\s0212777\OneDrive - Universiteit Antwerpen\Jupyter_projects\Articles\house_price_prediction\data\raw",
+    path=utils.Configuration.RAW_DATA_PATH,
     kind_of_apartment="for_sale",
     session=session,
     last_page=last_page,
