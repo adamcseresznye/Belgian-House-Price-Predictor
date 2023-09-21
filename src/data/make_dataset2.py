@@ -298,10 +298,11 @@ class ImmowebScraper:
             )
 
             # Save the joined table to a CSV file
-            reformatted_dataframe.to_csv(
+            reformatted_dataframe.to_parquet(
                 filepath.joinpath(
-                    f"listings_on_page_{page}_{str(pd.Timestamp.now())[:10]}.csv"
+                    f"listings_on_page_{page}_{str(pd.Timestamp.now())[:10]}.parquet.gzip"
                 ),
+                compression="gzip",
                 index=False,
             )
 
@@ -312,8 +313,11 @@ class ImmowebScraper:
 
         complete_dataset = pd.concat(all_tables, axis=0)
 
-        complete_dataset.to_csv(
-            filepath.joinpath(f"complete_dataset_{str(pd.Timestamp.now())[:10]}.csv"),
+        complete_dataset.to_parquet(
+            filepath.joinpath(
+                f"complete_dataset_{str(pd.Timestamp.now())[:10]}.parquet.gzip"
+            ),
+            compression="gzip",
             index=False,
         )
 
