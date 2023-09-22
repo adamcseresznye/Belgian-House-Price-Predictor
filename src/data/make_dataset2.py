@@ -333,7 +333,7 @@ session = HTMLSession(
     ]
 )
 
-last_page = 4
+last_page = 10
 path = utils.Configuration.RAW_DATA_PATH
 kind_of_apartment = "for_sale"
 columns_to_keep = utils.Configuration.features_to_keep_sales
