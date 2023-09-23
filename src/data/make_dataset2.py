@@ -1,8 +1,8 @@
 import logging
 import re
+import sys
 import time
 from io import StringIO
-from pathlib import Path
 from typing import List, Set
 
 import pandas as pd
@@ -19,22 +19,30 @@ class ImmowebScraper:
         last_page: int,
         start_page: int = 1,
         kind_of_apartment: str = "for_sale",
+        save_to_disk: bool = False,
     ):
         self.session = session
         self.start_page = start_page
         self.last_page = last_page
-        self.path = utils.Configuration.RAW_DATA_PATH
         self.kind_of_apartment = kind_of_apartment
         self.features_to_keep = utils.Configuration.features_to_keep_sales
+        self.path = utils.Configuration.RAW_DATA_PATH
+        self.save_to_disk = save_to_disk
 
         # Construct the absolute path for the log file using Path
         self.log_file_path = self.path / "error.log"
 
         # Set up logging
+        self.setup_logging()
+
+    def setup_logging(self):
+        """Set up logging configuration."""
         logging.basicConfig(
             filename=self.log_file_path,
-            level=logging.ERROR,
+            filemode="w",
+            level=logging.WARNING,
             format="%(asctime)s - %(levelname)s - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",  # Add timestamp format
         )
 
     def get_last_page_number_from_url(self, url: str) -> int:
@@ -60,8 +68,6 @@ class ImmowebScraper:
     def extract_ads_from_given_page(
         self,
         links: Set[str],
-        filepath: str,
-        save_to_disk: bool = False,
     ) -> List[pd.DataFrame]:
         all_ads_from_given_page = []
         for number, item in enumerate(list(links.absolute_links)):
@@ -88,58 +94,75 @@ class ImmowebScraper:
                 )
 
                 all_ads_from_given_page.append(individual_ad_revised)
+
+                # Save data to disk for each page if save_to_disk is True
+                if self.save_to_disk:
+                    self.save_data_to_disk(number, individual_ad_revised)
             except Exception as e:
-                if "No tables found" in str(e):
-                    logging.error(f"No tables found while processing {item}")
-                    pass  # Continue processing the next ad
-                elif "cannot reindex on an axis with duplicate labels" in str(e):
-                    logging.error(f"Duplicate labels found while processing {item}")
-                    pass  # Continue processing the next ad
-                else:
-                    raise e  # Raise the error if it's not one of the expected errors
+                self.handle_extraction_error(e, item)
+                continue
 
         all_ads_from_given_page_df = pd.concat(all_ads_from_given_page, axis=0)
 
-        if save_to_disk:
-            all_ads_from_given_page_df.to_parquet(
-                filepath.joinpath(
-                    f"listings_on_page_{number}_{str(pd.Timestamp.now())[:10]}.parquet.gzip"
-                ),
-                compression="gzip",
-                index=False,
-            )
+        # Always save the complete dataset to disk
+        self.save_complete_dataset(all_ads_from_given_page_df)
 
         return all_ads_from_given_page_df
 
-    def immoweb_scraping_pipeline(self, kind_of_apartment: str) -> pd.DataFrame:
-        filepath = Path(self.path)
-        all_tables = []
-        print(f"start_page: {self.start_page}, last_page: {self.last_page}")
-        for page in tqdm(range(self.start_page, self.last_page)):
-            url = f"https://www.immoweb.be/en/search/house/{kind_of_apartment}?countries=BE&page={page}&orderBy=relevance"
+    def handle_extraction_error(self, error: Exception, item: str):
+        """Handle exceptions during data extraction."""
+        if "No tables found" in str(error):
+            logging.error(f"No tables found while processing {item}")
+        elif "cannot reindex on an axis with duplicate labels" in str(error):
+            logging.error(f"Duplicate labels found while processing {item}")
+        else:
+            raise error
 
-            # Fetch and render the page, then extract links
-            links = self.get_links_to_listings(url)
-
-            # Parse data from the retrieved links
-            parsed_data = self.extract_ads_from_given_page(links, self.path)
-
-            all_tables.append(parsed_data)
-
-            # Add a sleep duration to avoid overloading the server with requests
-            time.sleep(2)
-
-        complete_dataset = pd.concat(all_tables, axis=0)
-
-        complete_dataset.to_parquet(
-            filepath.joinpath(
-                f"complete_dataset_{str(pd.Timestamp.now())[:10]}.parquet.gzip"
-            ),
-            compression="gzip",
-            index=False,
+    def save_data_to_disk(self, number: int, data: pd.DataFrame):
+        """Save data to disk."""
+        filepath = (
+            self.path
+            / f"listings_on_page_{number}_{str(pd.Timestamp.now())[:10]}.parquet.gzip"
         )
+        data.to_parquet(filepath, compression="gzip", index=False)
 
-        print("Task is completed!")
+    def save_complete_dataset(self, data: pd.DataFrame):
+        """Save the complete dataset to disk."""
+        filepath = (
+            self.path / f"complete_dataset_{str(pd.Timestamp.now())[:10]}.parquet.gzip"
+        )
+        data.to_parquet(filepath, compression="gzip", index=False)
+
+    def immoweb_scraping_pipeline(self):
+        all_tables = []
+        print(f"start_page: {self.start_page}, last_page: {self.last_page - 1}")
+
+        try:
+            for page in tqdm(range(self.start_page, self.last_page)):
+                url = f"https://www.immoweb.be/en/search/house/{self.kind_of_apartment}?countries=BE&page={page}&orderBy=relevance"
+
+                # Fetch and render the page, then extract links
+                links = self.get_links_to_listings(url)
+
+                # Parse data from the retrieved links
+                parsed_data = self.extract_ads_from_given_page(links)
+
+                all_tables.append(parsed_data)
+
+                # Add a sleep duration to avoid overloading the server with requests
+                time.sleep(2)
+
+            complete_dataset = pd.concat(all_tables, axis=0)
+
+            # Save complete dataset to disk
+            self.save_complete_dataset(complete_dataset)
+
+            print("Task is completed!")
+        except Exception as e:
+            # Log the error to the log file
+            logging.error(f"An error occurred: {str(e)}")
+            sys.exit(1)  # Exit with a non-zero exit code to indicate an error
+
         return complete_dataset
 
 
@@ -151,17 +174,17 @@ session = HTMLSession(
     ]
 )
 
-path = utils.Configuration.RAW_DATA_PATH
-kind_of_apartment = "for_sale"
-
 
 def main():
-    # Create an instance of the ImmowebScraper class
-    scraper = ImmowebScraper(session, last_page=3)
-    # Run the data scraping and processing pipeline
-    scraper.immoweb_scraping_pipeline(
-        kind_of_apartment,
-    )
+    try:
+        # Create an instance of the ImmowebScraper class
+        scraper = ImmowebScraper(session, last_page=3)
+        # Run the data scraping and processing pipeline
+        scraper.immoweb_scraping_pipeline()
+    except Exception as e:
+        # Handle exceptions here, and exit with a non-zero exit code
+        print(f"Error: {e}")
+        sys.exit(1)  # Exit with a non-zero exit code to indicate an
 
 
 if __name__ == "__main__":
