@@ -18,6 +18,17 @@ class LastPage(Enum):
 
 
 class ImmowebScraper:
+    """
+    A class for scraping and processing data from Immoweb.
+
+    Attributes:
+        session (HTMLSession): The HTMLSession used for web scraping.
+        start_page (int): The starting page number.
+        last_page (int): The last page number to scrape.
+        kind_of_apartment (str): The type of apartment to search for.
+        save_to_disk (bool): Whether to save data to disk.
+    """
+
     def __init__(
         self,
         session: HTMLSession,
@@ -26,6 +37,17 @@ class ImmowebScraper:
         kind_of_apartment: str = "for_sale",
         save_to_disk: bool = False,
     ):
+        """
+        Initialize the ImmowebScraper.
+
+        Args:
+            session (HTMLSession): The HTMLSession used for web scraping.
+            last_page (int): The last page number to scrape.
+            start_page (int, optional): The starting page number. Defaults to 1.
+            kind_of_apartment (str, optional): The type of apartment to search for.
+                Defaults to "for_sale".
+            save_to_disk (bool, optional): Whether to save data to disk. Defaults to False.
+        """
         self.session = session
         self.start_page = start_page
         self.last_page = last_page
@@ -35,7 +57,7 @@ class ImmowebScraper:
         self.save_to_disk = save_to_disk
 
         # Construct the absolute path for the log file using Path
-        self.log_file_path = self.path / "error.log"
+        self.log_file_path = self.path / "make_dataset_error.log"
 
         # Set up logging
         self.setup_logging()
@@ -144,6 +166,12 @@ class ImmowebScraper:
         return f"ImmowebScraper(start_page={self.start_page}, end_page={self.last_page}, kind_of_apartment={self.kind_of_apartment}, save_to_disk={self.save_to_disk})"
 
     def immoweb_scraping_pipeline(self):
+        """
+        Execute the Immoweb data scraping and processing pipeline.
+
+        Returns:
+            pd.DataFrame: The complete dataset.
+        """
         all_tables = []
         print(f"start_page: {self.start_page}, last_page: {self.last_page - 1}")
 
