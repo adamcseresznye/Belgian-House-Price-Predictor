@@ -17,6 +17,22 @@ class LastPage(Enum):
     LASTPAGE: str = "https://www.immoweb.be/en/search/house/for-sale?countries=BE&page=1&orderBy=relevance"
 
 
+def get_last_page_number_from_url(
+    url: str = "https://www.immoweb.be/en/search/house/for-sale?countries=BE&page=1&orderBy=relevance",
+) -> int:
+    r = session.get(url)
+    r.html.render(sleep=5)
+
+    elements = r.html.find("span.button__label")
+
+    all_page_numbers = [element.text for element in elements]
+
+    all_numbers = [item for item in all_page_numbers if re.match(r"\d+$", item)]
+    largest_number = max(map(int, all_numbers))
+
+    return largest_number
+
+
 class ImmowebScraper:
     """
     A class for scraping and processing data from Immoweb.
@@ -71,21 +87,6 @@ class ImmowebScraper:
             format="%(asctime)s - %(levelname)s - %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S",  # Add timestamp format
         )
-
-    def get_last_page_number_from_url(self, url: str = None) -> int:
-        if url is None:
-            url = LastPage.LASTPAGE.value
-        r = self.session.get(url)
-        r.html.render(sleep=5)
-
-        elements = r.html.find("span.button__label")
-
-        all_page_numbers = [element.text for element in elements]
-
-        all_numbers = [item for item in all_page_numbers if re.match(r"\d+$", item)]
-        largest_number = max(map(int, all_numbers))
-
-        return largest_number
 
     def get_links_to_listings(self, url: str) -> Element:
         r = self.session.get(url)
@@ -144,6 +145,10 @@ class ImmowebScraper:
             logging.error(f"No tables found while processing {item}")
         elif "cannot reindex on an axis with duplicate labels" in str(error):
             logging.error(f"Duplicate labels found while processing {item}")
+        elif "Conversion failed" in str(error):
+            logging.error(f"Expected bytes, got a 'int' object while processing {item}")
+        elif "None of [0] are in the columns" in str(error):
+            logging.error(f"Empty data while processing {item}")
         else:
             raise error
 
@@ -199,7 +204,9 @@ class ImmowebScraper:
         except Exception as e:
             # Log the error to the log file
             logging.error(f"An error occurred: {str(e)}")
-            sys.exit(1)  # Exit with a non-zero exit code to indicate an error
+            print("Webscraping is terminating.")
+            # sys.exit(1)  # Exit with a non-zero exit code to indicate an error
+            pass
 
         return complete_dataset
 
@@ -215,14 +222,16 @@ session = HTMLSession(
 
 def main():
     try:
+        # Use the get_last_page_number_from_url function to retrieve the last page number
+        last_page_number = get_last_page_number_from_url()
         # Create an instance of the ImmowebScraper class
-        scraper = ImmowebScraper(session, last_page=3)
+        scraper = ImmowebScraper(session, last_page=15)
         # Run the data scraping and processing pipeline
         scraper.immoweb_scraping_pipeline()
     except Exception as e:
         # Handle exceptions here, and exit with a non-zero exit code
         print(f"Error: {e}")
-        sys.exit(1)  # Exit with a non-zero exit code to indicate an
+        sys.exit(1)
 
 
 if __name__ == "__main__":
