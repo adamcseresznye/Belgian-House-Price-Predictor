@@ -145,10 +145,12 @@ class ImmowebScraper:
             logging.error(f"No tables found while processing {item}")
         elif "cannot reindex on an axis with duplicate labels" in str(error):
             logging.error(f"Duplicate labels found while processing {item}")
-        elif "Conversion failed" in str(error):
-            logging.error(f"Expected bytes, got a 'int' object while processing {item}")
+        elif "Expected bytes" in str(error):
+            logging.error(f"Conversion in [0] failed while processing {item}")
         elif "None of [0] are in the columns" in str(error):
             logging.error(f"Empty data while processing {item}")
+        elif "Could not convert" in str(error):
+            logging.error(f"Conversion in [1] failed while processing {item}")
         else:
             raise error
 
@@ -170,14 +172,11 @@ class ImmowebScraper:
     def __repr__(self):
         return f"ImmowebScraper(start_page={self.start_page}, end_page={self.last_page}, kind_of_apartment={self.kind_of_apartment}, save_to_disk={self.save_to_disk})"
 
+    """
     def immoweb_scraping_pipeline(self):
-        """
-        Execute the Immoweb data scraping and processing pipeline.
 
-        Returns:
-            pd.DataFrame: The complete dataset.
-        """
         all_tables = []
+        complete_dataset = pd.DataFrame()
         print(f"start_page: {self.start_page}, last_page: {self.last_page - 1}")
 
         try:
@@ -209,6 +208,53 @@ class ImmowebScraper:
             pass
 
         return complete_dataset
+    """
+
+    def immoweb_scraping_pipeline(self):
+        """
+        Execute the Immoweb data scraping and processing pipeline.
+
+        Returns:
+            pd.DataFrame: The complete dataset.
+        """
+        all_tables = []
+        complete_dataset = pd.DataFrame()
+        print(f"start_page: {self.start_page}, last_page: {self.last_page - 1}")
+
+        try:
+            for page in tqdm(range(self.start_page, self.last_page)):
+                url = f"https://www.immoweb.be/en/search/house/{self.kind_of_apartment}?countries=BE&page={page}&orderBy=relevance"
+
+                try:
+                    # Fetch and render the page, then extract links
+                    links = self.get_links_to_listings(url)
+
+                    # Parse data from the retrieved links
+                    parsed_data = self.extract_ads_from_given_page(links)
+
+                    all_tables.append(parsed_data)
+
+                    # Add a sleep duration to avoid overloading the server with requests
+                    time.sleep(2)
+                except Exception as page_error:
+                    # Log the error for the specific page
+                    logging.error(
+                        f"An error occurred on page {page}: {str(page_error)}"
+                    )
+                    continue  # Continue with the next page
+
+            complete_dataset = pd.concat(all_tables, axis=0)
+
+            # Save complete dataset to disk
+            self.save_complete_dataset(complete_dataset)
+
+            print("Task is completed!")
+        except Exception as pipeline_error:
+            # Log the error for the entire pipeline
+            logging.error(f"An error occurred in the pipeline: {str(pipeline_error)}")
+            print("Webscraping is terminating.")
+            # sys.exit(1)  # Exit with a non-zero exit code to indicate an error
+            pass
 
 
 # https://github.com/psf/requests-html/issues/275#issuecomment-513992564
@@ -225,7 +271,7 @@ def main():
         # Use the get_last_page_number_from_url function to retrieve the last page number
         last_page_number = get_last_page_number_from_url()
         # Create an instance of the ImmowebScraper class
-        scraper = ImmowebScraper(session, last_page=15)
+        scraper = ImmowebScraper(session, last_page=last_page_number)
         # Run the data scraping and processing pipeline
         scraper.immoweb_scraping_pipeline()
     except Exception as e:

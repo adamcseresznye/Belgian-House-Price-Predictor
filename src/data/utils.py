@@ -36,7 +36,7 @@ class Configuration:
         "Gas, water & electricity",
         "Latest land use designation",
         "Connection to sewer network",
-        # "Covered parking spaces",
+        "Covered parking spaces",
         "Possible priority purchase right",
         "Proceedings for breach of planning regulations",
         "Construction year",
