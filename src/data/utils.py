@@ -7,8 +7,8 @@ import numpy as np
 
 class Configuration:
     VER = 1
-    # RAW_DATA_PATH = Path.cwd().parents[1].joinpath("data/raw")
     RAW_DATA_PATH = Path(__file__).parents[2].joinpath("data/raw")
+    INTERIM_DATA_PATH = Path(__file__).parents[2].joinpath("data/interim")
 
     features_to_keep_sales = [
         "day_of_retrieval",

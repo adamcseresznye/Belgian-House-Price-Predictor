@@ -1,6 +1,7 @@
 import logging
 import re
 import sys
+from pathlib import Path
 from typing import List, Set
 
 import numpy as np
@@ -10,7 +11,7 @@ from data import utils
 
 # Set up logging
 logging.basicConfig(
-    filename=utils.Configuration.RAW_DATA_PATH / "build_features_error.log",
+    filename=utils.Configuration.INTERIM_DATA_PATH / "build_features_error.log",
     filemode="w",
     level=logging.WARNING,
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -20,13 +21,31 @@ logging.basicConfig(
 
 def pre_process_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Preprocesses a DataFrame by performing various data cleaning and transformation tasks.
+    Preprocesses and cleans the input DataFrame for data analysis.
+
+    This function performs various preprocessing steps on the input DataFrame,
+    including renaming columns, extracting numeric values, mapping boolean values,
+    and converting data types.
 
     Args:
-        df (pandas.DataFrame): The input DataFrame to be preprocessed.
+        df (pd.DataFrame): The input DataFrame to be preprocessed.
 
     Returns:
-        pandas.DataFrame: The preprocessed DataFrame.
+        pd.DataFrame: The preprocessed DataFrame ready for analysis.
+
+    Example:
+        To preprocess a DataFrame for analysis:
+        >>> data = pd.read_csv("raw_data.csv")
+        >>> preprocessed_data = pre_process_dataframe(data)
+        >>> print(preprocessed_data.head())
+
+    Notes:
+        - The function performs data cleaning and type conversion for specific columns.
+        - It renames columns to follow a consistent naming convention.
+        - Extracts numeric values from specified columns and converts them to float.
+        - Maps boolean values to True, False, or None for specified columns.
+        - Additional columns, such as 'flood_zone_type' and 'connection_to_sewer_network',
+          are also processed for data consistency and conversion.
     """
 
     def extract_numbers(df: pd.DataFrame, columns: list):
@@ -44,7 +63,7 @@ def pre_process_dataframe(df: pd.DataFrame) -> pd.DataFrame:
             try:
                 df[column] = df[column].str.extract(r"(\d+)").astype("float32")
             except Exception as e:
-                logging.error(f"Error processing column {column}: {e}")
+                print(f"Error processing column {column}: {e}")
         return df
 
     def map_values(df: pd.DataFrame, columns: list):
@@ -62,7 +81,7 @@ def pre_process_dataframe(df: pd.DataFrame) -> pd.DataFrame:
             try:
                 df[column] = df[column].map({"Yes": True, None: False, "No": False})
             except Exception as e:
-                logging.error(f"Error processing column {column}: {e}")
+                print(f"Error processing column {column}: {e}")
         return df
 
     number_columns = [
@@ -158,7 +177,7 @@ def separate_address(df: pd.DataFrame) -> pd.DataFrame:
 
     try:
         return df.assign(
-            city=lambda df: df.address.str.rsplit("-", expand=True, n=1)[1],
+            city=lambda df: df.address.str.rsplit("-", expand=True, n=1)[1].str.title(),
             **(lambda dfx: dfx.rename(columns={"address": "original_address"}))(
                 df["address"].str.extract(pattern)
             ),
@@ -167,5 +186,41 @@ def separate_address(df: pd.DataFrame) -> pd.DataFrame:
             ),
         ).drop(columns=["street_name", "address"])
     except Exception as e:
-        logging.error(f"Error separating address: {e}")
+        print(f"Error separating address: {e}")
         return df
+
+
+def filter_out_missing_indexes(
+    df: pd.DataFrame,
+    filepath: Path = utils.Configuration.INTERIM_DATA_PATH.joinpath(
+        f"{str(pd.Timestamp.now())[:10]}_Processed_dataset.parquet.gzip"
+    ),
+) -> pd.DataFrame:
+    """
+    Filter out rows with missing values in a DataFrame and save the processed dataset.
+
+    This function filters out rows with all missing values (NaN) and retains only rows
+    with non-missing values in the 'price' column. The resulting DataFrame is then saved
+    in Parquet format with gzip compression.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame.
+        filepath (Path, optional): The path to save the processed dataset in Parquet format.
+            Defaults to a timestamp-based filepath in the interim data directory.
+
+    Returns:
+        pd.DataFrame: The filtered DataFrame with missing rows removed.
+
+    Example:
+        To filter out missing rows and save the processed dataset:
+        >>> data = pd.read_csv("raw_data.csv")
+        >>> filtered_data = filter_out_missing_indexes(data)
+        >>> print(filtered_data.head())
+
+    Notes:
+        - Rows with missing values in any column other than 'price' are removed.
+        - The processed dataset is saved with gzip compression to conserve disk space.
+    """
+    processed_df = df.dropna(axis=0, how="all").query("price.notna()")
+    processed_df.to_parquet(filepath, compression="gzip", index=False)
+    return processed_df

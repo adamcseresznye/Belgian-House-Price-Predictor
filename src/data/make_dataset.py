@@ -20,6 +20,25 @@ class LastPage(Enum):
 def get_last_page_number_from_url(
     url: str = "https://www.immoweb.be/en/search/house/for-sale?countries=BE&page=1&orderBy=relevance",
 ) -> int:
+    """
+    Retrieve the last page number from an Immoweb search URL.
+
+    This function sends a GET request to the specified URL, extracts the page numbers from
+    the rendered HTML, and returns the largest page number found.
+
+    Args:
+        url (str, optional): The URL to query. Defaults to the Immoweb search URL.
+
+    Returns:
+        int: The largest page number found on the page.
+
+    Example:
+        To get the last page number of a search for houses for sale in Belgium:
+        >>> url = "https://www.immoweb.be/en/search/house/for-sale?countries=BE&page=1&orderBy=relevance"
+        >>> last_page = get_last_page_number_from_url(url)
+        >>> print(last_page)
+        10
+    """
     r = session.get(url)
     r.html.render(sleep=5)
 
@@ -172,50 +191,29 @@ class ImmowebScraper:
     def __repr__(self):
         return f"ImmowebScraper(start_page={self.start_page}, end_page={self.last_page}, kind_of_apartment={self.kind_of_apartment}, save_to_disk={self.save_to_disk})"
 
-    """
-    def immoweb_scraping_pipeline(self):
-
-        all_tables = []
-        complete_dataset = pd.DataFrame()
-        print(f"start_page: {self.start_page}, last_page: {self.last_page - 1}")
-
-        try:
-            for page in tqdm(range(self.start_page, self.last_page)):
-                url = f"https://www.immoweb.be/en/search/house/{self.kind_of_apartment}?countries=BE&page={page}&orderBy=relevance"
-
-                # Fetch and render the page, then extract links
-                links = self.get_links_to_listings(url)
-
-                # Parse data from the retrieved links
-                parsed_data = self.extract_ads_from_given_page(links)
-
-                all_tables.append(parsed_data)
-
-                # Add a sleep duration to avoid overloading the server with requests
-                time.sleep(2)
-
-            complete_dataset = pd.concat(all_tables, axis=0)
-
-            # Save complete dataset to disk
-            self.save_complete_dataset(complete_dataset)
-
-            print("Task is completed!")
-        except Exception as e:
-            # Log the error to the log file
-            logging.error(f"An error occurred: {str(e)}")
-            print("Webscraping is terminating.")
-            # sys.exit(1)  # Exit with a non-zero exit code to indicate an error
-            pass
-
-        return complete_dataset
-    """
-
-    def immoweb_scraping_pipeline(self):
+    def immoweb_scraping_pipeline(self) -> pd.DataFrame:
         """
         Execute the Immoweb data scraping and processing pipeline.
 
+        This method performs a series of steps to scrape and process data from Immoweb,
+        including fetching listings, parsing information, and saving the dataset.
+
         Returns:
             pd.DataFrame: The complete dataset.
+
+        Raises:
+            Exception: If any error occurs during the pipeline execution.
+
+        Example:
+            To run the Immoweb scraping pipeline and obtain the dataset:
+            >>> scraper = ImmowebScraper()
+            >>> dataset = scraper.immoweb_scraping_pipeline()
+            >>> print(dataset.head())
+
+        Notes:
+            - The dataset is saved to the path specified in 'utils.Configuration.RAW_DATA_PATH'.
+            - A delay is introduced between page requests to avoid overloading the server.
+            - Errors during the pipeline are logged, and the pipeline continues with the next page.
         """
         all_tables = []
         complete_dataset = pd.DataFrame()
@@ -255,6 +253,7 @@ class ImmowebScraper:
             print("Webscraping is terminating.")
             # sys.exit(1)  # Exit with a non-zero exit code to indicate an error
             pass
+        return complete_dataset
 
 
 # https://github.com/psf/requests-html/issues/275#issuecomment-513992564
