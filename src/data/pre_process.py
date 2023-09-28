@@ -23,9 +23,11 @@ def pre_process_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """
     Preprocesses and cleans the input DataFrame for data analysis.
 
-    This function performs various preprocessing steps on the input DataFrame,
-    including renaming columns, extracting numeric values, mapping boolean values,
-    and converting data types.
+    This function performs various preprocessing steps on the input DataFrame:
+    - Renames columns to follow a consistent naming convention.
+    - Extracts numeric values from specified columns and converts them to float.
+    - Maps boolean values in specified columns to True, False, or None.
+    - Performs data cleaning and type conversion for specific columns.
 
     Args:
         df (pd.DataFrame): The input DataFrame to be preprocessed.
@@ -40,12 +42,10 @@ def pre_process_dataframe(df: pd.DataFrame) -> pd.DataFrame:
         >>> print(preprocessed_data.head())
 
     Notes:
-        - The function performs data cleaning and type conversion for specific columns.
-        - It renames columns to follow a consistent naming convention.
-        - Extracts numeric values from specified columns and converts them to float.
-        - Maps boolean values to True, False, or None for specified columns.
-        - Additional columns, such as 'flood_zone_type' and 'connection_to_sewer_network',
-          are also processed for data consistency and conversion.
+        - The function renames columns, extracts numeric values, and maps boolean values.
+        - It also processes additional columns like 'flood_zone_type' and 'connection_to_sewer_network'.
+        - Specific columns such as 'cadastral_income' and 'price' undergo special processing.
+        - Any errors encountered during processing will be printed with column details.
     """
 
     def extract_numbers(df: pd.DataFrame, columns: list):
@@ -79,7 +79,7 @@ def pre_process_dataframe(df: pd.DataFrame) -> pd.DataFrame:
         """
         for column in columns:
             try:
-                df[column] = df[column].map({"Yes": True, None: False, "No": False})
+                df[column] = df[column].map({"Yes": 1, None: np.nan, "No": 0})
             except Exception as e:
                 print(f"Error processing column {column}: {e}")
         return df
@@ -119,6 +119,7 @@ def pre_process_dataframe(df: pd.DataFrame) -> pd.DataFrame:
         "subdivision_permit",
         "tenement_building",
         "possible_priority_purchase_right",
+        "office",
     ]
 
     return (
@@ -136,21 +137,21 @@ def pre_process_dataframe(df: pd.DataFrame) -> pd.DataFrame:
         .assign(
             flood_zone_type=lambda df: df.flood_zone_type.map(
                 {
-                    "Non flood zone": False,
-                    "No": False,
-                    "Possible flood zone": True,
+                    "Non flood zone": 0,
+                    "No": 0,
+                    "Possible flood zone": 1,
                 }
             ),
             connection_to_sewer_network=lambda df: df.connection_to_sewer_network.map(
                 {
-                    "Connected": True,
-                    "Not connected": False,
+                    "Connected": 1,
+                    "Not connected": 0,
                 }
             ),
             as_built_plan=lambda df: df.as_built_plan.map(
                 {
-                    "Yes, conform": True,
-                    "No": False,
+                    "Yes, conform": 1,
+                    "No": 0,
                 }
             ),
             cadastral_income=lambda df: df.cadastral_income.str.split(" ", expand=True)[

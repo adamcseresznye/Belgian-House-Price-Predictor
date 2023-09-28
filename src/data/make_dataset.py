@@ -217,7 +217,7 @@ class ImmowebScraper:
         """
         all_tables = []
         complete_dataset = pd.DataFrame()
-        print(f"start_page: {self.start_page}, last_page: {self.last_page - 1}")
+        # print(f"start_page: {self.start_page}, last_page: {self.last_page - 1}")
 
         try:
             for page in tqdm(range(self.start_page, self.last_page)):
@@ -245,8 +245,6 @@ class ImmowebScraper:
 
             # Save complete dataset to disk
             self.save_complete_dataset(complete_dataset)
-
-            print("Task is completed!")
         except Exception as pipeline_error:
             # Log the error for the entire pipeline
             logging.error(f"An error occurred in the pipeline: {str(pipeline_error)}")
@@ -254,30 +252,3 @@ class ImmowebScraper:
             # sys.exit(1)  # Exit with a non-zero exit code to indicate an error
             pass
         return complete_dataset
-
-
-# https://github.com/psf/requests-html/issues/275#issuecomment-513992564
-session = HTMLSession(
-    browser_args=[
-        "--no-sandbox",
-        "--user-agent=Mozilla/5.0 (Windows NT 5.1; rv:7.0.1) Gecko/20100101 Firefox/7.0.1",
-    ]
-)
-
-
-def main():
-    try:
-        # Use the get_last_page_number_from_url function to retrieve the last page number
-        last_page_number = get_last_page_number_from_url()
-        # Create an instance of the ImmowebScraper class
-        scraper = ImmowebScraper(session, last_page=last_page_number)
-        # Run the data scraping and processing pipeline
-        scraper.immoweb_scraping_pipeline()
-    except Exception as e:
-        # Handle exceptions here, and exit with a non-zero exit code
-        print(f"Error: {e}")
-        sys.exit(1)
-
-
-if __name__ == "__main__":
-    main()
