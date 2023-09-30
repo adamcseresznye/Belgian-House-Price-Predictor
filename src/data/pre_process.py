@@ -2,10 +2,12 @@ import logging
 import re
 import sys
 from pathlib import Path
-from typing import List, Set
+from typing import List, Optional, Set, Tuple
 
 import numpy as np
 import pandas as pd
+from geopy.geocoders import Nominatim
+from tqdm import tqdm
 
 from data import utils
 
@@ -189,6 +191,54 @@ def separate_address(df: pd.DataFrame) -> pd.DataFrame:
     except Exception as e:
         print(f"Error separating address: {e}")
         return df
+
+
+def get_location_details(
+    location: str, geolocator: Nominatim
+) -> Tuple[Optional[str], Optional[float], Optional[float]]:
+    """
+    Get the address, latitude, and longitude for a given location.
+
+    Parameters:
+    location (str): The location to get details for.
+    geolocator (Nominatim): The geolocator object to use for geocoding.
+
+    Returns:
+    tuple: A tuple containing the address (str), latitude (float), and longitude (float) of the location.
+           If the geocoder cannot find the location, all elements of the tuple will be None.
+    """
+    try:
+        location = geolocator.geocode(location, language="en")
+        return location.address, location.latitude, location.longitude
+    except AttributeError:
+        print(f"Unable to get details for location: {location}")
+        return None, None, None
+
+
+def map_addresses(df, addresses, latitudes, longitudes, column_name="address"):
+    """
+    Maps the addresses, latitudes, and longitudes to a specific column in a DataFrame.
+
+    Parameters:
+    df (pd.DataFrame): The DataFrame to map the addresses, latitudes, and longitudes to.
+    addresses (list): The list of addresses to map.
+    latitudes (list): The list of latitudes to map.
+    longitudes (list): The list of longitudes to map.
+    column_name (str): The name of the column in df to map the addresses, latitudes, and longitudes to. Defaults to "address".
+
+    Returns:
+    pd.DataFrame: The DataFrame with the mapped addresses, latitudes, and longitudes.
+    """
+    unique_addresses = pd.Series(df[column_name].unique()).to_list()
+    return df.assign(
+        full_address=lambda df: df[column_name].map(
+            dict(zip(unique_addresses, addresses))
+        ),
+        latitude=lambda df: df[column_name].map(dict(zip(unique_addresses, latitudes))),
+        longitude=lambda df: df[column_name].map(
+            dict(zip(unique_addresses, longitudes))
+        ),
+    ).drop(columns=column_name)
 
 
 def filter_out_missing_indexes(
