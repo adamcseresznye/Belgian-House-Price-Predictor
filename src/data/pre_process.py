@@ -10,7 +10,7 @@ import pandas as pd
 from geopy.geocoders import Nominatim
 from tqdm import tqdm
 
-import credentials
+import creds
 from data import utils
 
 # Set up logging
@@ -218,7 +218,7 @@ def get_location_details(
 
 
 def get_location_details_from_google(
-    location: str, key: str = credentials.api_key
+    location: str, key: str = creds.api_key
 ) -> Tuple[
     Optional[str],
     Optional[str],
@@ -235,7 +235,7 @@ def get_location_details_from_google(
     Args:
         location (str): The location for which details are to be fetched.
         key (str, optional): The API key to be used for the request. Defaults
-                             to credentials.api_key.
+                             to creds.api_key.
 
     Returns:
         tuple: A tuple containing the following details about the location (in
