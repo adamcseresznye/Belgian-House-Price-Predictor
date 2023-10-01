@@ -79,7 +79,9 @@ target/
 /data/
 
 # exclude credentials.py in src folder from source control
-/scr/credentials.py
+/src/credentials.py
+/src/creds.py
+/src/test_creds.py
 
 # Mac OS-specific storage files
 .DS_Store
