@@ -2,13 +2,15 @@ import logging
 import re
 import sys
 from pathlib import Path
-from typing import List, Optional, Set, Tuple
+from typing import List, Optional, Set, Tuple, Union
 
+import geocoder
 import numpy as np
 import pandas as pd
 from geopy.geocoders import Nominatim
 from tqdm import tqdm
 
+import credentials
 from data import utils
 
 # Set up logging
@@ -215,6 +217,56 @@ def get_location_details(
         return None, None, None
 
 
+def get_location_details_from_google(
+    location: str, key: str = credentials.api_key
+) -> Tuple[
+    Optional[str],
+    Optional[str],
+    Optional[str],
+    Optional[str],
+    Optional[str],
+    Optional[Union[float, None]],
+    Optional[Union[float, None]],
+]:
+    """
+    This function uses the geocoder library to get details of a location using
+    Google's Geocoding API.
+
+    Args:
+        location (str): The location for which details are to be fetched.
+        key (str, optional): The API key to be used for the request. Defaults
+                             to credentials.api_key.
+
+    Returns:
+        tuple: A tuple containing the following details about the location (in
+               order):
+            - House number (str or None)
+            - Street (str or None)
+            - City (str or None)
+            - Postal code (str or None)
+            - State (str or None)
+            - Latitude (float or None)
+            - Longitude (float or None)
+
+    Raises:
+        AttributeError: If unable to get details for the location.
+    """
+    try:
+        location = geocoder.google(location, key=key)
+        return (
+            location.housenumber,
+            location.street,
+            location.city,
+            location.postal,
+            location.state,
+            location.lat,
+            location.lng,
+        )
+    except AttributeError:
+        print(f"Unable to get details for location: {location}")
+        return None, None, None, None, None, None
+
+
 def map_addresses(df, addresses, latitudes, longitudes, column_name="address"):
     """
     Maps the addresses, latitudes, and longitudes to a specific column in a DataFrame.
@@ -239,6 +291,49 @@ def map_addresses(df, addresses, latitudes, longitudes, column_name="address"):
             dict(zip(unique_addresses, longitudes))
         ),
     ).drop(columns=column_name)
+
+
+def map_addresses_from_google(
+    df: pd.DataFrame,
+    housenumber: List[Optional[str]],
+    street: List[Optional[str]],
+    city: List[Optional[str]],
+    postal: List[Optional[str]],
+    state: List[Optional[str]],
+    lat: List[Optional[float]],
+    lng: List[Optional[float]],
+    column_name: str = "address",
+) -> pd.DataFrame:
+    """
+    This function maps the details of unique addresses to new columns in the
+    dataframe and drops the original address column.
+
+    Args:
+        df (pd.DataFrame): The dataframe containing the addresses.
+        housenumber (List[Optional[str]]): The list of house numbers.
+        street (List[Optional[str]]): The list of streets.
+        city (List[Optional[str]]): The list of cities.
+        postal (List[Optional[str]]): The list of postal codes.
+        state (List[Optional[str]]): The list of states.
+        lat (List[Optional[float]]): The list of latitudes.
+        lng (List[Optional[float]]): The list of longitudes.
+        column_name (str, optional): The name of the address column in the
+                                     dataframe. Defaults to "address".
+
+    Returns:
+        pd.DataFrame: The dataframe with new columns for each detail and the
+                      original address column dropped.
+    """
+    unique_addresses = pd.Series(df[column_name].unique()).to_list()
+    address_dict = dict(
+        zip(unique_addresses, zip(housenumber, street, city, postal, state, lat, lng))
+    )
+
+    df[
+        ["housenumber", "street", "city", "postal", "state", "lat", "lng"]
+    ] = pd.DataFrame(df[column_name].map(address_dict).tolist(), index=df.index)
+
+    return df.drop(columns=column_name)
 
 
 def filter_out_missing_indexes(
