@@ -9,6 +9,7 @@ class Configuration:
     VER = 1
     RAW_DATA_PATH = Path(__file__).parents[2].joinpath("data/raw")
     INTERIM_DATA_PATH = Path(__file__).parents[2].joinpath("data/interim")
+    target_col = "price"
 
     features_to_keep_sales = [
         "day_of_retrieval",
@@ -64,7 +65,6 @@ class Configuration:
     ]
     seed = 3407
     n_folds = 10
-    target_col = "Class"
     verbose = 0
 
 
