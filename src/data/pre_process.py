@@ -8,6 +8,7 @@ import geocoder
 import numpy as np
 import pandas as pd
 from geopy.geocoders import Nominatim
+from sklearn import model_selection
 from tqdm import tqdm
 
 import creds
@@ -369,4 +370,72 @@ def filter_out_missing_indexes(
     """
     processed_df = df.dropna(axis=0, how="all").query("price.notna()")
     processed_df.to_parquet(filepath, compression="gzip", index=False)
+    return processed_df
+
+
+def prepare_data_for_modelling(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
+    """
+    Preprocesses a DataFrame for machine learning modeling and adds 'kfold' column for cross-validation.
+
+    This function takes a DataFrame containing the dataset to be processed and performs the following steps:
+    1. Adds a 'kfold' column to the DataFrame for cross-validation.
+    2. Randomly samples and shuffles the dataset.
+    3. Applies a log transformation to the 'price' column in the DataFrame.
+    4. Drops specified columns from the DataFrame. They can be found in utils.Configuration.features_to_drop
+    5. Handles missing values in boolean, object, and category columns by filling them with 'missing value'.
+
+    Args:
+        df (pd.DataFrame): The input dataset to create folds for.
+
+    Returns:
+        Tuple[pd.DataFrame, pd.Series]: A tuple containing the feature matrix (X) and the target variable (y).
+
+    Example:
+        >>> import pandas as pd
+        >>> from my_module import prepare_data_for_modelling
+        >>> data = pd.read_csv("my_data.csv")  # Load your dataset
+        >>> X, y = prepare_data_for_modelling(data)
+        >>> print(X.head())  # Display the first few rows of the feature matrix
+        >>> print(y.head())  # Display the first few rows of the target variable
+    """
+    # Add 'folds' column initialized with -1 for all rows
+    df["folds"] = -1
+
+    # Shuffle the dataset by sampling and resetting the index
+    df = df.sample(frac=1, random_state=utils.Configuration.seed).reset_index(drop=True)
+
+    # Convert the continuous 'price' variable to a categorical variable with 2 bins
+    df.loc[:, "bins"] = pd.cut(df["price"], bins=2, labels=False)
+
+    # Alternatively, you can use Sturge's rule to determine the number of bins:
+    # num_bins = int(np.floor(1 + np.log2(len(data))))
+    # df.loc[:, "bins"] = pd.cut(df["price"], bins=num_bins, labels=False)
+
+    # Use Stratified K-Fold with 10 splits to assign fold numbers
+    kf = model_selection.StratifiedKFold(n_splits=10)
+    for fold, (t_, v_) in enumerate(kf.split(X=df, y=df.bins.values)):
+        df.loc[v_, "folds"] = fold
+
+    # Perform data preprocessing
+    processed_df = (
+        df.reset_index(drop=True)
+        .assign(
+            price=lambda df: np.log10(df.price)
+        )  # Log transformation of 'price' column
+        .drop(columns=utils.Configuration.features_to_drop)
+    )
+
+    # Handle missing values in boolean, object, and category columns
+    # https://www.kdnuggets.com/2023/02/top-5-advantages-catboost-ml-brings-data-make-purr.html
+    for col in processed_df.columns:
+        if processed_df[col].dtype.name in ("bool", "object", "category"):
+            processed_df[col] = processed_df[col].fillna("missing value")
+
+    # Separate features (X) and target (y)
+    X = processed_df.drop(columns=utils.Configuration.target_col)
+    y = processed_df[utils.Configuration.target_col]
+
+    print(f"Shape of X and y: {X.shape}, {y.shape}")
+
+    # return X, y
     return processed_df

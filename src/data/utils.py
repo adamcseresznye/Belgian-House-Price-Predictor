@@ -63,9 +63,31 @@ class Configuration:
         "As built plan",
         "Dining room",
     ]
+    features_to_drop = [
+        "external_reference",
+        "ad_url",
+        "day_of_retrieval",
+        "website",
+        "reference_number_of_the_epc_report",
+        "housenumber",
+        "bins",
+    ]
     seed = 3407
     n_folds = 10
-    verbose = 0
+    verbose = 200
+    early_stopping_round = 20
+
+    catboost_params = {
+        #'iterations': 342,
+        #'depth': 3,
+        #'learning_rate': 0.3779980855781628,
+        #'random_strength': 1.5478223057973914,
+        #'bagging_temperature': 0.689173368569372,
+        #'l2_leaf_reg': 16,
+        #'border_count': 37,
+        "thread_count": os.cpu_count(),
+        "loss_function": "RMSE",
+    }
 
 
 def seed_everything(seed):
