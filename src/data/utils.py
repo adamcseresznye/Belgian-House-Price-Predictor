@@ -74,7 +74,7 @@ class Configuration:
     ]
     seed = 3407
     n_folds = 10
-    verbose = 200
+    verbose = 0
     early_stopping_round = 20
 
     catboost_params = {
