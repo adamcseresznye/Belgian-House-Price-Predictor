@@ -81,6 +81,9 @@ target/
 # exclude credentials.py in src folder from source control
 /src/creds.py
 
+# exclude data from catboost_info
+/notebooks/catboost_info/
+
 
 # Mac OS-specific storage files
 .DS_Store
