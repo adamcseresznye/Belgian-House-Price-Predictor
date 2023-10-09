@@ -404,16 +404,9 @@ def prepare_data_for_modelling(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Serie
     # Shuffle the dataset by sampling and resetting the index
     df = df.sample(frac=1, random_state=utils.Configuration.seed).reset_index(drop=True)
 
-    # Convert the continuous 'price' variable to a categorical variable with 2 bins
-    df.loc[:, "bins"] = pd.cut(df["price"], bins=2, labels=False)
-
-    # Alternatively, you can use Sturge's rule to determine the number of bins:
-    # num_bins = int(np.floor(1 + np.log2(len(data))))
-    # df.loc[:, "bins"] = pd.cut(df["price"], bins=num_bins, labels=False)
-
-    # Use Stratified K-Fold with 10 splits to assign fold numbers
-    kf = model_selection.StratifiedKFold(n_splits=10)
-    for fold, (t_, v_) in enumerate(kf.split(X=df, y=df.bins.values)):
+    # Use K-Fold with 10 splits to assign fold numbers
+    kf = model_selection.KFold(n_splits=10)
+    for fold, (t_, v_) in enumerate(kf.split(X=df)):
         df.loc[v_, "folds"] = fold
 
     # Perform data preprocessing

@@ -70,7 +70,7 @@ class Configuration:
         "website",
         "reference_number_of_the_epc_report",
         "housenumber",
-        "bins",
+        # "bins",
     ]
     seed = 3407
     n_folds = 10
