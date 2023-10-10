@@ -24,8 +24,8 @@ jobs:
           python -m pip install jupyter nbconvert nbformat scrapingant-client
 
 
-      - name: main.py
+      - name: run src/main.py
         env:
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
         run:
-          python main.py
+          python src/main.py
