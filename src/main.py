@@ -1,3 +1,4 @@
+import os
 import sys
 
 import pandas as pd
@@ -14,13 +15,18 @@ session = HTMLSession(
     ]
 )
 
+try:
+    GOOGLE_MAPS_API_KEY = os.environ["GOOGLE_MAPS_API_KEY"]
+except:
+    raise Exception("Set environment variable GOOGLE_MAPS_API_KEY")
+
 
 def main():
     try:
         # Use the get_last_page_number_from_url function to retrieve the last page number
-        last_page_number = make_dataset.get_last_page_number_from_url()
+        last_page_number = make_dataset.get_last_page_number_from_url(session=session)
         # Create an instance of the ImmowebScraper class
-        scraper = make_dataset.ImmowebScraper(session, last_page=last_page_number)
+        scraper = make_dataset.ImmowebScraper(session, last_page=3)
         # Run the data scraping and processing pipeline
         scraped_dataset = scraper.immoweb_scraping_pipeline()
 

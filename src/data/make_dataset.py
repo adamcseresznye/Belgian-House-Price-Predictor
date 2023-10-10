@@ -18,6 +18,7 @@ class LastPage(Enum):
 
 
 def get_last_page_number_from_url(
+    session: HTMLSession,
     url: str = "https://www.immoweb.be/en/search/house/for-sale?countries=BE&page=1&orderBy=relevance",
 ) -> int:
     """
@@ -27,6 +28,7 @@ def get_last_page_number_from_url(
     the rendered HTML, and returns the largest page number found.
 
     Args:
+        session (HTMLSession): The HTMLSession used for web scraping.
         url (str, optional): The URL to query. Defaults to the Immoweb search URL.
 
     Returns:
