@@ -1,4 +1,5 @@
 import logging
+import os
 import re
 import sys
 from pathlib import Path
@@ -7,12 +8,15 @@ from typing import List, Optional, Set, Tuple, Union
 import geocoder
 import numpy as np
 import pandas as pd
+from dotenv import load_dotenv
 from geopy.geocoders import Nominatim
 from sklearn import model_selection
 from tqdm import tqdm
 
 import creds
 from data import utils
+
+load_dotenv()
 
 # Set up logging
 logging.basicConfig(
@@ -219,7 +223,7 @@ def get_location_details(
 
 
 def get_location_details_from_google(
-    location: str, key: str = creds.api_key
+    location: str, key: str = os.environ["GOOGLE_MAPS_API_KEY"]
 ) -> Tuple[
     Optional[str],
     Optional[str],
@@ -236,7 +240,7 @@ def get_location_details_from_google(
     Args:
         location (str): The location for which details are to be fetched.
         key (str, optional): The API key to be used for the request. Defaults
-                             to creds.api_key.
+                             to os.environ['GOOGLE_MAPS_API_KEY'].
 
     Returns:
         tuple: A tuple containing the following details about the location (in
