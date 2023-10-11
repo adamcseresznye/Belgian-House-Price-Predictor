@@ -429,4 +429,5 @@ def prepare_data_for_modelling(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Serie
 
     print(f"Shape of X and y: {X.shape}, {y.shape}")
 
-    return X, y
+    # return X, y
+    return processed_df
