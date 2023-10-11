@@ -72,6 +72,25 @@ class Configuration:
         "housenumber",
         # "bins",
     ]
+    features_to_keep = [
+        "postal",
+        "covered_parking_spaces",
+        "toilets",
+        "street",
+        "construction_year",
+        "primary_energy_consumption",
+        "state",
+        "bathrooms",
+        "city",
+        "lng",
+        "building_condition",
+        "yearly_theoretical_total_energy_consumption",
+        "surface_of_the_plot",
+        "lat",
+        "cadastral_income",
+        "living_area",
+        "folds",
+    ]
     seed = 3407
     n_folds = 10
     verbose = 0

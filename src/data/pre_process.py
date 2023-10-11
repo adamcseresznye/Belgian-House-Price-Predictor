@@ -413,13 +413,9 @@ def prepare_data_for_modelling(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Serie
         df.loc[v_, "folds"] = fold
 
     # Perform data preprocessing
-    processed_df = (
-        df.reset_index(drop=True)
-        .assign(
-            price=lambda df: np.log10(df.price)
-        )  # Log transformation of 'price' column
-        .drop(columns=utils.Configuration.features_to_drop)
-    )
+    processed_df = df.reset_index(drop=True).assign(
+        price=lambda df: np.log10(df.price)
+    )  # Log transformation of 'price' column
 
     # Handle missing values in boolean, object, and category columns
     # https://www.kdnuggets.com/2023/02/top-5-advantages-catboost-ml-brings-data-make-purr.html
@@ -428,10 +424,9 @@ def prepare_data_for_modelling(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Serie
             processed_df[col] = processed_df[col].fillna("missing value")
 
     # Separate features (X) and target (y)
-    X = processed_df.drop(columns=utils.Configuration.target_col)
+    X = processed_df.loc[:, utils.Configuration.features_to_keep]
     y = processed_df[utils.Configuration.target_col]
 
     print(f"Shape of X and y: {X.shape}, {y.shape}")
 
-    # return X, y
-    return processed_df
+    return X, y
