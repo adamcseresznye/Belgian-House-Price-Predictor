@@ -13,7 +13,6 @@ from geopy.geocoders import Nominatim
 from sklearn import model_selection
 from tqdm import tqdm
 
-import creds
 from data import utils
 
 load_dotenv()
