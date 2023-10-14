@@ -89,7 +89,6 @@ class Configuration:
         "lat",
         "cadastral_income",
         "living_area",
-        "folds",
     ]
     seed = 3407
     n_folds = 10
@@ -106,6 +105,8 @@ class Configuration:
         #'border_count': 37,
         "thread_count": os.cpu_count(),
         "loss_function": "RMSE",
+        "iterations" : 100,
+        "learning_rate": 0.2
     }
 
 
