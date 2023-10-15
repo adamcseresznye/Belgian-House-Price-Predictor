@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
 from geopy.geocoders import Nominatim
-from sklearn import model_selection
+from sklearn import compose, impute, model_selection, neighbors, pipeline, preprocessing
 from tqdm import tqdm
 
 from data import utils
@@ -422,3 +422,73 @@ def prepare_data_for_modelling(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Serie
     print(f"Shape of X and y: {X.shape}, {y.shape}")
 
     return X, y
+
+
+def identify_outliers(df: pd.DataFrame) -> pd.Series:
+    """
+    Identify outliers in a DataFrame.
+
+    This function uses a Local Outlier Factor (LOF) algorithm to identify outliers in a given
+    DataFrame. It operates on both numerical and categorical features, and it returns a binary
+    Series where `True` represents an outlier and `False` represents a non-outlier.
+
+    Parameters:
+    - df (pd.DataFrame): The input DataFrame containing features for outlier identification.
+
+    Returns:
+    - pd.Series: A Boolean Series indicating outliers (True) and non-outliers (False).
+
+    Example:
+    ```python
+    # Load your DataFrame with features (df)
+    df = load_data()
+
+    # Identify outliers using the function
+    outlier_mask = identify_outliers(df)
+
+    # Use the outlier mask to filter your DataFrame
+    filtered_df = df[~outlier_mask]  # Keep non-outliers
+    ```
+
+    Notes:
+    - The function uses Local Outlier Factor (LOF) with default parameters for identifying outliers.
+    - Numerical features are imputed using median values, and categorical features are one-hot encoded
+    and imputed with median values.
+    - The resulting Boolean Series is `True` for outliers and `False` for non-outliers.
+    """
+
+    # Extract numerical and categorical feature names
+    NUMERICAL_FEATURES = df.select_dtypes("number").columns.tolist()
+    CATEGORICAL_FEATURES = df.select_dtypes("object").columns.tolist()
+
+    # Define transformers for preprocessing
+    numeric_transformer = pipeline.Pipeline(
+        steps=[("imputer", impute.SimpleImputer(strategy="median"))]
+    )
+
+    categorical_transformer = pipeline.Pipeline(
+        steps=[
+            ("encoder", preprocessing.OneHotEncoder(handle_unknown="ignore")),
+            ("imputer", impute.SimpleImputer(strategy="median")),
+        ]
+    )
+
+    # Create a ColumnTransformer to handle both numerical and categorical features
+    preprocessor = compose.ColumnTransformer(
+        transformers=[
+            ("num", numeric_transformer, NUMERICAL_FEATURES),
+            ("cat", categorical_transformer, CATEGORICAL_FEATURES),
+        ]
+    )
+
+    # Initialize the LOF model
+    clf = neighbors.LocalOutlierFactor(n_neighbors=20, contamination=0.1)
+
+    # Fit LOF to preprocessed data and make predictions
+    y_pred = clf.fit_predict(preprocessor.fit_transform(df))
+
+    # Adjust LOF predictions to create a binary outlier mask
+    y_pred_adjusted = [1 if x == -1 else 0 for x in y_pred]
+    outlier_mask = pd.Series(y_pred_adjusted) == 0
+
+    return outlier_mask
