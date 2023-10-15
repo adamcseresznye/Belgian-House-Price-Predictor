@@ -482,7 +482,7 @@ def identify_outliers(df: pd.DataFrame) -> pd.Series:
     )
 
     # Initialize the LOF model
-    clf = neighbors.LocalOutlierFactor(n_neighbors=20, contamination=0.1)
+    clf = neighbors.LocalOutlierFactor()
 
     # Fit LOF to preprocessed data and make predictions
     y_pred = clf.fit_predict(preprocessor.fit_transform(df))
