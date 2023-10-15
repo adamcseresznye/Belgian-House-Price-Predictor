@@ -378,47 +378,39 @@ def filter_out_missing_indexes(
 
 def prepare_data_for_modelling(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
     """
-    Preprocesses a DataFrame for machine learning modeling and adds 'kfold' column for cross-validation.
+    Prepare data for machine learning modeling.
 
-    This function takes a DataFrame containing the dataset to be processed and performs the following steps:
-    1. Adds a 'kfold' column to the DataFrame for cross-validation.
-    2. Randomly samples and shuffles the dataset.
-    3. Applies a log transformation to the 'price' column in the DataFrame.
-    4. Drops specified columns from the DataFrame. They can be found in utils.Configuration.features_to_drop
-    5. Handles missing values in boolean, object, and category columns by filling them with 'missing value'.
+    This function takes a DataFrame and prepares it for machine learning by performing the following steps:
+    1. Randomly shuffles the rows of the DataFrame.
+    2. Converts the 'price' column to the base 10 logarithm.
+    3. Fills missing values in categorical variables with 'missing value'.
+    4. Separates the features (X) and the target (y).
 
-    Args:
-        df (pd.DataFrame): The input dataset to create folds for.
+    Parameters:
+    - df (pd.DataFrame): The input DataFrame containing the dataset.
 
     Returns:
-        Tuple[pd.DataFrame, pd.Series]: A tuple containing the feature matrix (X) and the target variable (y).
+    - Tuple[pd.DataFrame, pd.Series]: A tuple containing the prepared features (X) and the target (y).
 
-    Example:
-        >>> import pandas as pd
-        >>> from my_module import prepare_data_for_modelling
-        >>> data = pd.read_csv("my_data.csv")  # Load your dataset
-        >>> X, y = prepare_data_for_modelling(data)
-        >>> print(X.head())  # Display the first few rows of the feature matrix
-        >>> print(y.head())  # Display the first few rows of the target variable
+    Example use case:
+    ```python
+    # Load your dataset into a DataFrame (e.g., df)
+    df = load_data()
+
+    # Prepare the data for modeling
+    X, y = prepare_data_for_modelling(df)
+
+    # Now you can use X and y for machine learning tasks.
+    ```
     """
-    # Add 'folds' column initialized with -1 for all rows
-    df["folds"] = -1
 
-    # Shuffle the dataset by sampling and resetting the index
-    df = df.sample(frac=1, random_state=utils.Configuration.seed).reset_index(drop=True)
+    processed_df = (
+        df.sample(frac=1, random_state=utils.Configuration.seed)
+        .reset_index(drop=True)
+        .assign(price=lambda df: np.log10(df.price))
+    )
 
-    # Use K-Fold with 10 splits to assign fold numbers
-    kf = model_selection.KFold(n_splits=10)
-    for fold, (t_, v_) in enumerate(kf.split(X=df)):
-        df.loc[v_, "folds"] = fold
-
-    # Perform data preprocessing
-    processed_df = df.reset_index(drop=True).assign(
-        price=lambda df: np.log10(df.price)
-    )  # Log transformation of 'price' column
-
-    # Handle missing values in boolean, object, and category columns
-    # https://www.kdnuggets.com/2023/02/top-5-advantages-catboost-ml-brings-data-make-purr.html
+    # Fill missing categorical variables with "missing value"
     for col in processed_df.columns:
         if processed_df[col].dtype.name in ("bool", "object", "category"):
             processed_df[col] = processed_df[col].fillna("missing value")
@@ -429,5 +421,4 @@ def prepare_data_for_modelling(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Serie
 
     print(f"Shape of X and y: {X.shape}, {y.shape}")
 
-    # return X, y
-    return processed_df
+    return X, y

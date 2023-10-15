@@ -105,8 +105,8 @@ class Configuration:
         #'border_count': 37,
         "thread_count": os.cpu_count(),
         "loss_function": "RMSE",
-        "iterations" : 100,
-        "learning_rate": 0.2
+        "iterations": 100,
+        "learning_rate": 0.2,
     }
 
 
