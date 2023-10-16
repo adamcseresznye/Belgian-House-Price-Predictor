@@ -24,6 +24,10 @@ except:
 
 def main():
     try:
+        print(
+            f"Log path: {Path(utils.Configuration.RAW_DATA_PATH / 'make_dataset_error.log')}"
+        )
+
         # create the log files
         Path(utils.Configuration.RAW_DATA_PATH / "make_dataset_error.log").touch()
         Path(utils.Configuration.INTERIM_DATA_PATH / "build_features_error.log").touch()
