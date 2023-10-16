@@ -18,13 +18,13 @@ from data import utils
 load_dotenv()
 
 # Set up logging
-logging.basicConfig(
-    filename=utils.Configuration.INTERIM_DATA_PATH / "build_features_error.log",
-    filemode="w",
-    level=logging.WARNING,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
+# logging.basicConfig(
+#    filename=utils.Configuration.INTERIM_DATA_PATH / "build_features_error.log",
+#    filemode="w",
+#    level=logging.WARNING,
+#    format="%(asctime)s - %(levelname)s - %(message)s",
+#    datefmt="%Y-%m-%d %H:%M:%S",
+# )
 
 
 def pre_process_dataframe(df: pd.DataFrame) -> pd.DataFrame:
