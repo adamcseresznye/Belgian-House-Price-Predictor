@@ -180,7 +180,7 @@ def run_catboost_CV(
         n_splits=n_splits, n_repeats=n_repeats, random_state=utils.Configuration.seed
     )
 
-    for train_fold_index, val_fold_index in (CV.split(X)):
+    for train_fold_index, val_fold_index in CV.split(X):
         X_train_fold, X_val_fold = X.loc[train_fold_index], X.loc[val_fold_index]
         y_train_fold, y_val_fold = y.loc[train_fold_index], y.loc[val_fold_index]
 

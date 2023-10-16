@@ -23,6 +23,9 @@ jobs:
           pip install -r requirements.txt
           python -m pip install jupyter nbconvert nbformat scrapingant-client
 
+      - name: set pythonpath
+        run: |
+          echo "PYTHONPATH=/home/runner/work/house_price_prediction/house_price_prediction/src" >> $GITHUB_ENV
 
       - name: run src/main.py
         env:
