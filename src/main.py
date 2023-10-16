@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path
 
 import pandas as pd
 from requests_html import HTMLSession
@@ -23,6 +24,10 @@ except:
 
 def main():
     try:
+        # create the log files
+        Path(utils.Configuration.RAW_DATA_PATH / "make_dataset_error.log").touch()
+        Path(utils.Configuration.INTERIM_DATA_PATH / "build_features_error.log").touch()
+
         # Use the get_last_page_number_from_url function to retrieve the last page number
         last_page_number = make_dataset.get_last_page_number_from_url(session=session)
         # Create an instance of the ImmowebScraper class
