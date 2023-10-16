@@ -39,7 +39,7 @@ jobs:
       - name: run src/main.py
         env:
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
-        run:
+        run: |
           echo mkdir -p ${{ github.workspace }}/data/raw/make_dataset_error.log
           echo mkdir -p ${{ github.workspace }}/data/interim/build_features_error.log
           python src/main.py
