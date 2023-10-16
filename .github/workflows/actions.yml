@@ -27,6 +27,13 @@ jobs:
         run: |
           echo "PYTHONPATH=/home/runner/work/house_price_prediction/house_price_prediction/src" >> $GITHUB_ENV
 
+      - name: create directories
+        run: |
+          echo mkdir -p ${{ github.workspace }}/data/raw
+          echo mkdir -p ${{ github.workspace }}/data/processed
+          echo mkdir -p ${{ github.workspace }}/data/interim
+          echo mkdir -p ${{ github.workspace }}/data/external
+
       - name: run src/main.py
         env:
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
