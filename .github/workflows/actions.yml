@@ -27,19 +27,14 @@ jobs:
         run: |
           echo "PYTHONPATH=/home/runner/work/house_price_prediction/house_price_prediction/src" >> $GITHUB_ENV
 
-      - name: create files and directories
-        run: |
-          echo mkdir -p ${{ github.workspace }}/data/raw
-          echo mkdir -p ${{ github.workspace }}/data/interim
-          echo mkdir -p ${{ github.workspace }}/data/processed
-          echo mkdir -p ${{ github.workspace }}/data/external
-          echo mkdir -p ${{ github.workspace }}/data/raw/make_dataset_error.log
-          echo mkdir -p ${{ github.workspace }}/data/interim/build_features_error.log
-
       - name: run src/main.py
         env:
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
         run: |
-          echo mkdir -p ${{ github.workspace }}/data/raw/make_dataset_error.log
-          echo mkdir -p ${{ github.workspace }}/data/interim/build_features_error.log
+          mkdir -p ${{ github.workspace }}/data/raw
+          mkdir -p ${{ github.workspace }}/data/interim
+          mkdir -p ${{ github.workspace }}/data/processed
+          mkdir -p ${{ github.workspace }}/data/external
+          mkdir -p ${{ github.workspace }}/data/raw/make_dataset_error.log
+          mkdir -p ${{ github.workspace }}/data/interim/build_features_error.log
           python src/main.py
