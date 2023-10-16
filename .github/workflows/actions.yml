@@ -34,7 +34,7 @@ jobs:
           echo mkdir -p ${{ github.workspace }}/data/processed
           echo mkdir -p ${{ github.workspace }}/data/external
           echo mkdir -p ${{ github.workspace }}/data/raw/make_dataset_error.log
-          echo mkdir -p ${{ github.workspace }}/data/raw/build_features_error.log
+          echo mkdir -p ${{ github.workspace }}/data/interim/build_features_error.log
 
       - name: run src/main.py
         env:
