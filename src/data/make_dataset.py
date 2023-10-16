@@ -250,6 +250,7 @@ class ImmowebScraper:
         except Exception as pipeline_error:
             # Log the error for the entire pipeline
             logging.error(f"An error occurred in the pipeline: {str(pipeline_error)}")
+            print(str(pipeline_error))
             print("Webscraping is terminating.")
             # sys.exit(1)  # Exit with a non-zero exit code to indicate an error
             pass
