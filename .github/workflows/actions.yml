@@ -35,6 +35,6 @@ jobs:
           mkdir -p ${{ github.workspace }}/data/interim
           mkdir -p ${{ github.workspace }}/data/processed
           mkdir -p ${{ github.workspace }}/data/external
-          mkdir -p ${{ github.workspace }}/data/raw/make_dataset_error.log
-          mkdir -p ${{ github.workspace }}/data/interim/build_features_error.log
+          touch ${{ github.workspace }}/data/raw/make_dataset_error.log
+          touch ${{ github.workspace }}/data/interim/build_features_error.log
           python src/main.py
