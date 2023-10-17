@@ -229,8 +229,12 @@ class ImmowebScraper:
                     # Fetch and render the page, then extract links
                     links = self.get_links_to_listings(url)
 
+                    print(links.absolute_links)
+
                     # Parse data from the retrieved links
                     parsed_data = self.extract_ads_from_given_page(links)
+
+                    print(parsed_data)
 
                     all_tables.append(parsed_data)
 

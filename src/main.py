@@ -27,7 +27,7 @@ def main():
         # Use the get_last_page_number_from_url function to retrieve the last page number
         last_page_number = make_dataset.get_last_page_number_from_url(session=session)
         # Create an instance of the ImmowebScraper class
-        scraper = make_dataset.ImmowebScraper(session, last_page=3)
+        scraper = make_dataset.ImmowebScraper(session, last_page=2)
         # Run the data scraping and processing pipeline
         scraped_dataset = scraper.immoweb_scraping_pipeline()
 
@@ -35,27 +35,10 @@ def main():
 
         df_pre_processed = pre_process.pre_process_dataframe(scraped_dataset)
 
-        housenumber, street, city, postal, state, lat, lng = zip(
-            *[
-                pre_process.get_location_details_from_google(loc)
-                for loc in tqdm(df_pre_processed.address.unique(), position=0)
-            ]
-        )
-        mapped_df = pre_process.map_addresses_from_google(
-            df_pre_processed,
-            housenumber,
-            street,
-            city,
-            postal,
-            state,
-            lat,
-            lng,
+        print(
+            f"Web scraping completed. Column names: {df_pre_processed.columns}, Shape of df: {df_pre_processed.shape}"
         )
 
-        pre_process.filter_out_missing_indexes(mapped_df)
-        print(
-            f"Pre-processing completed. Raw data saved at {utils.Configuration.INTERIM_DATA_PATH}"
-        )
     except Exception as e:
         # Handle exceptions here, and exit with a non-zero exit code
         print(f"Error: {e}")
