@@ -125,9 +125,15 @@ class ImmowebScraper:
             try:
                 r = self.session.get(item)
 
+                print(item)
+                print(r)
+
                 individual_ad = (
                     pd.concat(pd.read_html(StringIO(r.text))).dropna().set_index(0)
                 )
+
+                print(individual_ad)
+
                 individual_ad.loc["day_of_retrieval", 1] = pd.Timestamp.now()
                 individual_ad.loc["ad_url", 1] = item
 
