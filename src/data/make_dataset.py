@@ -167,8 +167,6 @@ class ImmowebScraper:
 
         all_ads_from_given_page_df = pd.concat(all_ads_from_given_page, axis=0)
 
-        print(all_ads_from_given_page_df)
-
         # Always save the complete dataset to disk
         self.save_complete_dataset(all_ads_from_given_page_df)
 
@@ -248,11 +246,7 @@ class ImmowebScraper:
                     # Parse data from the retrieved links
                     parsed_data = self.extract_ads_from_given_page(links)
 
-                    print(parsed_data)
-
                     all_tables.append(parsed_data)
-
-                    print(f"Length of all_tables:{len(all_tables)}")
 
                     # Add a sleep duration to avoid overloading the server with requests
                     time.sleep(2)
