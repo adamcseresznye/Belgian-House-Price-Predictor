@@ -248,7 +248,11 @@ class ImmowebScraper:
                     # Parse data from the retrieved links
                     parsed_data = self.extract_ads_from_given_page(links)
 
+                    print(parsed_data)
+
                     all_tables.append(parsed_data)
+
+                    print(f"Length of all_tables:{len(all_tables)}")
 
                     # Add a sleep duration to avoid overloading the server with requests
                     time.sleep(2)
@@ -256,6 +260,9 @@ class ImmowebScraper:
                     # Log the error for the specific page
                     logging.error(
                         f"An error occurred on page {page}: {str(page_error)}"
+                    )
+                    print(
+                        f"Error in the immoweb_scraping_pipeline method on {page}: {page_error}"
                     )
                     continue  # Continue with the next page
 
