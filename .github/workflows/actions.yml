@@ -25,7 +25,7 @@ jobs:
 
       - name: set pythonpath
         run: |
-          $env:"PYTHONPATH=D:\a\house_price_prediction\house_price_prediction\src" >> $GITHUB_ENV
+          "PYTHONPATH=D:\a\house_price_prediction\house_price_prediction\src" | Out-File -Append -FilePath $env:GITHUB_ENV
 
       - name: run src/main.py
         env:
