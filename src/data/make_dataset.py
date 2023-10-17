@@ -122,7 +122,7 @@ class ImmowebScraper:
     ) -> List[pd.DataFrame]:
         all_ads_from_given_page = []
         for number, item in enumerate(list(links.absolute_links)):
-            if "immoweb.be" in item and "orderBy=relevance" not in item:
+            if "immoweb.be" in item and "https://www.immoweb.be/en/search" not in item:
                 try:
                     r = self.session.get(item)
 
@@ -152,6 +152,7 @@ class ImmowebScraper:
 
                     all_ads_from_given_page.append(individual_ad_revised)
 
+                    print(item)
                     print(
                         f"Length of all_ads_from_given_page: {len(all_ads_from_given_page)}"
                     )
@@ -165,6 +166,8 @@ class ImmowebScraper:
                     pass
 
         all_ads_from_given_page_df = pd.concat(all_ads_from_given_page, axis=0)
+
+        print(all_ads_from_given_page_df)
 
         # Always save the complete dataset to disk
         self.save_complete_dataset(all_ads_from_given_page_df)
