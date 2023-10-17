@@ -138,19 +138,26 @@ class ImmowebScraper:
                 individual_ad.loc["ad_url", 1] = item
 
                 individual_ad_revised = (
-                    individual_ad.transpose()
-                    .filter(self.features_to_keep)
+                    individual_ad.transpose().filter(  # Transpose the DataFrame so that the rows and columns are swapped
+                        self.features_to_keep
+                    )  # Filter the DataFrame to only include the features specified in self.features_to_keep
+                    # Inside the assign method, a dictionary comprehension is used to create new columns
+                    # for each feature in self.features_to_keep that isn't already a column in the DataFrame.
                     .pipe(
                         lambda df: df.assign(
-                            **{
+                            **{  # For each missing column, create a new pandas Series of type float64, ie NaN values.
                                 col: pd.Series(dtype="float64")
                                 for col in set(self.features_to_keep) - set(df.columns)
                             }
                         )
                     )
                 )
-
+                print(individual_ad_revised)
                 all_ads_from_given_page.append(individual_ad_revised)
+
+                print(
+                    f"Length of all_ads_from_given_page: {len(all_ads_from_given_page)}"
+                )
 
                 # Save data to disk for each page if save_to_disk is True
                 if self.save_to_disk:
