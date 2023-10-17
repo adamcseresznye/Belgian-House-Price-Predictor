@@ -25,16 +25,18 @@ jobs:
 
       - name: set pythonpath
         run: |
-          echo "PYTHONPATH=/home/runner/work/house_price_prediction/house_price_prediction/src" >> $GITHUB_ENV
+          echo "PYTHONPATH=D:\a\house_price_prediction\house_price_prediction\src" >> $GITHUB_ENV
 
       - name: run src/main.py
         env:
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
         run: |
-          mkdir -p ${{ github.workspace }}/data/raw
-          mkdir -p ${{ github.workspace }}/data/interim
-          mkdir -p ${{ github.workspace }}/data/processed
-          mkdir -p ${{ github.workspace }}/data/external
-          touch ${{ github.workspace }}/data/raw/make_dataset_error.log
-          touch ${{ github.workspace }}/data/interim/build_features_error.log
+          new-item  "D:\a\house_price_prediction\house_price_prediction\data\raw" -itemtype directory
+          new-item  "D:\a\house_price_prediction\house_price_prediction\data\interim" -itemtype directory
+          new-item  "D:\a\house_price_prediction\house_price_prediction\data\processed" -itemtype directory
+          new-item  "D:\a\house_price_prediction\house_price_prediction\data\external" -itemtype directory
+
+          new-item  "D:\a\house_price_prediction\house_price_prediction\data\raw\make_dataset_error.log" -itemtype file
+          new-item  "D:\a\house_price_prediction\house_price_prediction\data\interim\build_features_error.log" -itemtype file
+
           python src/main.py
