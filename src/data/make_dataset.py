@@ -122,49 +122,47 @@ class ImmowebScraper:
     ) -> List[pd.DataFrame]:
         all_ads_from_given_page = []
         for number, item in enumerate(list(links.absolute_links)):
-            try:
-                r = self.session.get(item)
+            if "immoweb.be" in item and "orderBy=relevance" not in item:
+                try:
+                    r = self.session.get(item)
 
-                print(item)
-                print(r)
+                    individual_ad = (
+                        pd.concat(pd.read_html(StringIO(r.text))).dropna().set_index(0)
+                    )
 
-                individual_ad = (
-                    pd.concat(pd.read_html(StringIO(r.text))).dropna().set_index(0)
-                )
+                    individual_ad.loc["day_of_retrieval", 1] = pd.Timestamp.now()
+                    individual_ad.loc["ad_url", 1] = item
 
-                print(individual_ad)
-
-                individual_ad.loc["day_of_retrieval", 1] = pd.Timestamp.now()
-                individual_ad.loc["ad_url", 1] = item
-
-                individual_ad_revised = (
-                    individual_ad.transpose().filter(  # Transpose the DataFrame so that the rows and columns are swapped
-                        self.features_to_keep
-                    )  # Filter the DataFrame to only include the features specified in self.features_to_keep
-                    # Inside the assign method, a dictionary comprehension is used to create new columns
-                    # for each feature in self.features_to_keep that isn't already a column in the DataFrame.
-                    .pipe(
-                        lambda df: df.assign(
-                            **{  # For each missing column, create a new pandas Series of type float64, ie NaN values.
-                                col: pd.Series(dtype="float64")
-                                for col in set(self.features_to_keep) - set(df.columns)
-                            }
+                    individual_ad_revised = (
+                        individual_ad.transpose().filter(  # Transpose the DataFrame so that the rows and columns are swapped
+                            self.features_to_keep
+                        )  # Filter the DataFrame to only include the features specified in self.features_to_keep
+                        # Inside the assign method, a dictionary comprehension is used to create new columns
+                        # for each feature in self.features_to_keep that isn't already a column in the DataFrame.
+                        .pipe(
+                            lambda df: df.assign(
+                                **{  # For each missing column, create a new pandas Series of type float64, ie NaN values.
+                                    col: pd.Series(dtype="float64")
+                                    for col in set(self.features_to_keep)
+                                    - set(df.columns)
+                                }
+                            )
                         )
                     )
-                )
-                print(individual_ad_revised)
-                all_ads_from_given_page.append(individual_ad_revised)
 
-                print(
-                    f"Length of all_ads_from_given_page: {len(all_ads_from_given_page)}"
-                )
+                    all_ads_from_given_page.append(individual_ad_revised)
 
-                # Save data to disk for each page if save_to_disk is True
-                if self.save_to_disk:
-                    self.save_data_to_disk(number, individual_ad_revised)
-            except Exception as e:
-                self.handle_extraction_error(e, item)
-                continue
+                    print(
+                        f"Length of all_ads_from_given_page: {len(all_ads_from_given_page)}"
+                    )
+
+                    # Save data to disk for each page if save_to_disk is True
+                    if self.save_to_disk:
+                        self.save_data_to_disk(number, individual_ad_revised)
+                except Exception as e:
+                    self.handle_extraction_error(e, item)
+                    print(e)
+                    pass
 
         all_ads_from_given_page_df = pd.concat(all_ads_from_given_page, axis=0)
 
@@ -246,8 +244,6 @@ class ImmowebScraper:
 
                     # Parse data from the retrieved links
                     parsed_data = self.extract_ads_from_given_page(links)
-
-                    print(parsed_data)
 
                     all_tables.append(parsed_data)
 
