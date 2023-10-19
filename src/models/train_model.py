@@ -171,8 +171,8 @@ def run_catboost_CV(
     results = []
 
     # Extract feature names and data types
-    features = X.columns[~X.columns.str.contains("price")]
-    numerical_features = X.select_dtypes("number").columns.to_list()
+    # features = X.columns[~X.columns.str.contains("price")]
+    # numerical_features = X.select_dtypes("number").columns.to_list()
     categorical_features = X.select_dtypes("object").columns.to_list()
 
     # Create a K-Fold cross-validator
