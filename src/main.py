@@ -54,7 +54,7 @@ def main():
 
         pre_process.filter_out_missing_indexes(mapped_df)
         print(
-            f"Pre-processing completed. Raw data saved at {utils.Configuration.INTERIM_DATA_PATH}"
+            f"Pre-processing completed. Data saved at {utils.Configuration.INTERIM_DATA_PATH}"
         )
     except Exception as e:
         # Handle exceptions here, and exit with a non-zero exit code

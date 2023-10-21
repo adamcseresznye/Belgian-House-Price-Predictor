@@ -376,54 +376,6 @@ def filter_out_missing_indexes(
     return processed_df
 
 
-def prepare_data_for_modelling(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
-    """
-    Prepare data for machine learning modeling.
-
-    This function takes a DataFrame and prepares it for machine learning by performing the following steps:
-    1. Randomly shuffles the rows of the DataFrame.
-    2. Converts the 'price' column to the base 10 logarithm.
-    3. Fills missing values in categorical variables with 'missing value'.
-    4. Separates the features (X) and the target (y).
-
-    Parameters:
-    - df (pd.DataFrame): The input DataFrame containing the dataset.
-
-    Returns:
-    - Tuple[pd.DataFrame, pd.Series]: A tuple containing the prepared features (X) and the target (y).
-
-    Example use case:
-    ```python
-    # Load your dataset into a DataFrame (e.g., df)
-    df = load_data()
-
-    # Prepare the data for modeling
-    X, y = prepare_data_for_modelling(df)
-
-    # Now you can use X and y for machine learning tasks.
-    ```
-    """
-
-    processed_df = (
-        df.sample(frac=1, random_state=utils.Configuration.seed)
-        .reset_index(drop=True)
-        .assign(price=lambda df: np.log10(df.price))
-    )
-
-    # Fill missing categorical variables with "missing value"
-    for col in processed_df.columns:
-        if processed_df[col].dtype.name in ("bool", "object", "category"):
-            processed_df[col] = processed_df[col].fillna("missing value")
-
-    # Separate features (X) and target (y)
-    X = processed_df.loc[:, utils.Configuration.features_to_keep]
-    y = processed_df[utils.Configuration.target_col]
-
-    print(f"Shape of X and y: {X.shape}, {y.shape}")
-
-    return X, y
-
-
 def identify_outliers(df: pd.DataFrame) -> pd.Series:
     """
     Identify outliers in a DataFrame.
@@ -492,3 +444,80 @@ def identify_outliers(df: pd.DataFrame) -> pd.Series:
     outlier_mask = pd.Series(y_pred_adjusted) == 0
 
     return outlier_mask
+
+
+def prepare_data_for_modelling(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
+    """
+    Prepare data for machine learning modeling.
+
+    This function takes a DataFrame and prepares it for machine learning by performing the following steps:
+    1. Randomly shuffles the rows of the DataFrame.
+    2. Converts the 'price' column to the base 10 logarithm.
+    3. Fills missing values in categorical variables with 'missing value'.
+    4. Separates the features (X) and the target (y).
+    5. Identifies and filters out outlier values based on LocalOutlierFactor.
+
+    Parameters:
+    - df (pd.DataFrame): The input DataFrame containing the dataset.
+
+    Returns:
+    - Tuple[pd.DataFrame, pd.Series]: A tuple containing the prepared features (X) and the target (y).
+
+    Example use case:
+    ```python
+    # Load your dataset into a DataFrame (e.g., df)
+    df = load_data()
+
+    # Prepare the data for modeling
+    X, y = prepare_data_for_modelling(df)
+
+    # Now you can use X and y for machine learning tasks.
+    ```
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the dataset.
+
+    Returns:
+        Tuple[pd.DataFrame, pd.Series]: A tuple containing the prepared features (X) and the target (y).
+    """
+
+    processed_df = (
+        df.sample(frac=1, random_state=utils.Configuration.seed)
+        .reset_index(drop=True)
+        .assign(
+            price=lambda df: np.log10(df.price),
+            city_group=lambda df: df.groupby("city")["cadastral_income"].transform(
+                "median"
+            ),
+            building_condition_group=lambda df: df.groupby("building_condition")[
+                "yearly_theoretical_total_energy_consumption"
+            ].transform("median"),
+            energy_efficiency_1=lambda df: df.yearly_theoretical_total_energy_consumption
+            / df.primary_energy_consumption,
+            energy_efficiency_2=lambda df: df.primary_energy_consumption
+            / df.living_area,
+            bargain_1=lambda df: df.cadastral_income / df.bedrooms,
+            bargain_2=lambda df: df.cadastral_income / df.living_area,
+        )
+    )
+
+    # Fill missing categorical variables with "missing value"
+    for col in processed_df.columns:
+        if processed_df[col].dtype.name in ("bool", "object", "category"):
+            processed_df[col] = processed_df[col].fillna("missing value")
+
+    # Separate features (X) and target (y)
+    X = processed_df.loc[:, utils.Configuration.features_to_keep_v2]
+    y = processed_df[utils.Configuration.target_col]
+
+    outlier_mask = identify_outliers(X)
+
+    X_wo_outliers = X.loc[outlier_mask, :].reset_index(drop=True)
+    y_wo_outliers = y.loc[outlier_mask].reset_index(drop=True)
+
+    print(f"Shape of X and y with outliers: {X.shape}, {y.shape}")
+    print(
+        f"Shape of X and y without outliers: {X_wo_outliers.shape}, {y_wo_outliers.shape}"
+    )
+
+    return X_wo_outliers, y_wo_outliers

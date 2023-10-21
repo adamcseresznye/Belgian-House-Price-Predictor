@@ -72,12 +72,28 @@ class Configuration:
         "housenumber",
         # "bins",
     ]
-    features_to_keep = [
+    features_to_keep_v1 = [
         "bedrooms",
         "state",
         "kitchen_type",
         "number_of_frontages",
         "toilets",
+        "street",
+        "lng",
+        "primary_energy_consumption",
+        "bathrooms",
+        "yearly_theoretical_total_energy_consumption",
+        "surface_of_the_plot",
+        "building_condition",
+        "city",
+        "lat",
+        "cadastral_income",
+        "living_area",
+    ]
+    features_to_keep_v2 = [
+        "bedrooms",
+        "state",
+        "number_of_frontages",
         "street",
         "lng",
         "primary_energy_consumption",
