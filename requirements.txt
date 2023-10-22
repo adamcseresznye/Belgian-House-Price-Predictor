@@ -2,10 +2,13 @@ catboost==1.2.2
 fastparquet==2023.8.0
 geocoder==1.38.1
 geopy==2.4.0
+ibm-db==3.2.0
+ibm_db_sa==0.4.0
 ipython==8.15.0
 lets_plot==4.0.1
 matplotlib==3.8.0
 numpy==1.25.2
+optuna==3.4.0
 pandas==2.1.1
 pyarrow==13.0.0
 pytest==7.4.2

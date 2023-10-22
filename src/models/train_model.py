@@ -1,8 +1,10 @@
 import gc
+import os
 from typing import List, Optional, Tuple
 
 import catboost
 import numpy as np
+import optuna
 import pandas as pd
 from sklearn import metrics, model_selection, pipeline
 from tqdm import tqdm
@@ -231,3 +233,117 @@ def run_catboost_CV(
         results.append(RMSE_score)
 
     return np.mean(results), np.std(results)
+
+
+class Optuna_Objective:
+    def __init__(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Initialize the Objective class with the dataset for hyperparameter optimization.
+
+        Parameters:
+        - X (pd.DataFrame): Features DataFrame.
+        - y (pd.Series): Target Series.
+        """
+        self.X = X
+        self.y = y
+
+    def __call__(self, trial: optuna.Trial) -> float:
+        """
+        Optuna objective function for tuning CatBoost hyperparameters.
+
+        This function takes an Optuna trial and explores hyperparameters for a CatBoost
+        model to minimize the Root Mean Squared Error (RMSE) using K-Fold cross-validation.
+
+        Parameters:
+        - trial (optuna.Trial): Optuna trial object for hyperparameter optimization.
+
+        Returns:
+        - float: Mean RMSE across K-Fold cross-validation iterations.
+
+        Example use case:
+        ```python
+        # Create an Optuna study and optimize hyperparameters
+        study = optuna.create_study(direction="minimize")
+        study.optimize(Objective(X, y), n_trials=100)
+
+        # Get the best hyperparameters
+        best_params = study.best_params
+        ```
+        """
+        catboost_params = {
+            "iterations": trial.suggest_int("iterations", 10, 1000),
+            "depth": trial.suggest_int("depth", 1, 8),
+            "learning_rate": trial.suggest_float("learning_rate", 0.01, 1),
+            "random_strength": trial.suggest_float("random_strength", 1e-9, 10),
+            "bagging_temperature": trial.suggest_float("bagging_temperature", 0, 1),
+            "l2_leaf_reg": trial.suggest_int("l2_leaf_reg", 2, 30),
+            "border_count": trial.suggest_int("border_count", 1, 255),
+            "thread_count": os.cpu_count(),
+        }
+
+        results = []
+        optuna.logging.set_verbosity(optuna.logging.WARNING)
+
+        # Extract feature names and data types
+        # features = X.columns[~X.columns.str.contains("price")]
+        # numerical_features = X.select_dtypes("number").columns.to_list()
+        categorical_features = self.X.select_dtypes("object").columns.to_list()
+
+        # Create a K-Fold cross-validator
+        CV = model_selection.RepeatedKFold(
+            n_splits=10, n_repeats=1, random_state=utils.Configuration.seed
+        )
+
+        for train_fold_index, val_fold_index in CV.split(self.X):
+            X_train_fold, X_val_fold = (
+                self.X.loc[train_fold_index],
+                self.X.loc[val_fold_index],
+            )
+            y_train_fold, y_val_fold = (
+                self.y.loc[train_fold_index],
+                self.y.loc[val_fold_index],
+            )
+
+            # Create CatBoost datasets
+            catboost_train = catboost.Pool(
+                X_train_fold,
+                y_train_fold,
+                cat_features=categorical_features,
+            )
+            catboost_valid = catboost.Pool(
+                X_val_fold,
+                y_val_fold,
+                cat_features=categorical_features,
+            )
+
+            # Initialize and train the CatBoost model
+            model = catboost.CatBoostRegressor(**catboost_params)
+            model.fit(
+                catboost_train,
+                eval_set=[catboost_valid],
+                early_stopping_rounds=utils.Configuration.early_stopping_round,
+                verbose=utils.Configuration.verbose,
+                use_best_model=True,
+            )
+
+            # Calculate OOF validation predictions
+            valid_pred = model.predict(X_val_fold)
+
+            RMSE_score = metrics.mean_squared_error(
+                y_val_fold, valid_pred, squared=False
+            )
+
+            del (
+                X_train_fold,
+                y_train_fold,
+                X_val_fold,
+                y_val_fold,
+                catboost_train,
+                catboost_valid,
+                model,
+                valid_pred,
+            )
+            gc.collect()
+
+            results.append(RMSE_score)
+        return np.mean(results)
