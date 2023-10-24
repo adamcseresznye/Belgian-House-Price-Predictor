@@ -347,3 +347,48 @@ class Optuna_Objective:
 
             results.append(RMSE_score)
         return np.mean(results)
+
+
+def train_catboost(
+    X: pd.DataFrame, y: pd.Series, catboost_params: dict
+) -> catboost.CatBoostRegressor:
+    """
+    Train a CatBoostRegressor model using the provided data and parameters.
+
+    Parameters:
+        X (pd.DataFrame): The feature dataset.
+        y (pd.Series): The target variable.
+        catboost_params (dict): CatBoost hyperparameters.
+
+    Returns:
+        CatBoostRegressor: The trained CatBoost model.
+
+    This function takes the feature dataset `X`, the target variable `y`, and a dictionary of CatBoost
+    hyperparameters. It automatically detects categorical features in the dataset and trains a CatBoostRegressor
+    model with the specified parameters.
+
+    Example:
+        X, y = load_data()
+        catboost_params = {
+            'iterations': 1000,
+            'learning_rate': 0.1,
+            'depth': 6,
+            # ... other hyperparameters ...
+        }
+        model = train_catboost(X, y, catboost_params)
+    """
+    categorical_features = X.select_dtypes("object").columns.to_list()
+
+    catboost_train = catboost.Pool(
+        X,
+        y,
+        cat_features=categorical_features,
+    )
+
+    model = catboost.CatBoostRegressor(**catboost_params)
+    model.fit(
+        catboost_train,
+        verbose=utils.Configuration.verbose,
+    )
+
+    return model
