@@ -342,9 +342,10 @@ def map_addresses_from_google(
 
 def filter_out_missing_indexes(
     df: pd.DataFrame,
-    filepath: Path = utils.Configuration.INTERIM_DATA_PATH.joinpath(
+    filepath: Path = utils.Configuration.GIT_DATA.joinpath(
         f"{str(pd.Timestamp.now())[:10]}_Processed_dataset.parquet.gzip"
     ),
+    save_to_disk: bool = True,
 ) -> pd.DataFrame:
     """
     Filter out rows with missing values in a DataFrame and save the processed dataset.
@@ -356,7 +357,9 @@ def filter_out_missing_indexes(
     Args:
         df (pd.DataFrame): The input DataFrame.
         filepath (Path, optional): The path to save the processed dataset in Parquet format.
-            Defaults to a timestamp-based filepath in the interim data directory.
+            Defaults to a timestamp-based filepath in the GIT_DATA directory.
+        save_to_disk (bool, optional): Whether to save the processed dataset to disk.
+            Defaults to True.
 
     Returns:
         pd.DataFrame: The filtered DataFrame with missing rows removed.
@@ -372,7 +375,11 @@ def filter_out_missing_indexes(
         - The processed dataset is saved with gzip compression to conserve disk space.
     """
     processed_df = df.dropna(axis=0, how="all").query("price.notna()")
-    processed_df.to_parquet(filepath, compression="gzip", index=False)
+    if save_to_disk:
+        processed_df.to_parquet(filepath, compression="gzip", index=False)
+        print(
+            f"Pre-processing completed. Data saved at {utils.Configuration.INTERIM_DATA_PATH}"
+        )
     return processed_df
 
 

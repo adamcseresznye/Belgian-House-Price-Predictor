@@ -9,6 +9,9 @@ class Configuration:
     VER = 1
     RAW_DATA_PATH = Path(__file__).parents[2].joinpath("data/raw")
     INTERIM_DATA_PATH = Path(__file__).parents[2].joinpath("data/interim")
+    GIT_DATA = Path(__file__).parents[2].joinpath("git_data")
+    GIT_MODEL = Path(__file__).parents[2].joinpath("git_model")
+    GIT_HYPERPARAMETERS = Path(__file__).parents[2].joinpath("git_hyperparameters")
     target_col = "price"
 
     features_to_keep_sales = [
