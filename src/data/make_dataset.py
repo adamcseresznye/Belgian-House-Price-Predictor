@@ -205,12 +205,12 @@ class ImmowebScraper:
     def __repr__(self):
         return f"ImmowebScraper(start_page={self.start_page}, end_page={self.last_page}, kind_of_apartment={self.kind_of_apartment}, save_to_disk={self.save_to_disk})"
 
-    def immoweb_scraping_pipeline(self) -> pd.DataFrame:
+    def immoweb_scraping_pipeline(self, save_to_disk: bool = False) -> pd.DataFrame:
         """
         Execute the Immoweb data scraping and processing pipeline.
 
         This method performs a series of steps to scrape and process data from Immoweb,
-        including fetching listings, parsing information, and saving the dataset.
+        including fetching listings, parsing information, and optionally saving the dataset to disk.
 
         Returns:
             pd.DataFrame: The complete dataset.
@@ -262,8 +262,10 @@ class ImmowebScraper:
 
             complete_dataset = pd.concat(all_tables, axis=0)
 
-            # Save complete dataset to disk
-            self.save_complete_dataset(complete_dataset)
+            if save_to_disk:
+                # Save complete dataset to disk
+                self.save_complete_dataset(complete_dataset)
+                print(f"Web scraping completed. Raw data saved at {scraper.path}")
         except Exception as pipeline_error:
             # Log the error for the entire pipeline
             logging.error(f"An error occurred in the pipeline: {str(pipeline_error)}")

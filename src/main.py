@@ -1,12 +1,14 @@
 import os
+import pickle
 import sys
 from pathlib import Path
 
+import optuna
 import pandas as pd
 from requests_html import HTMLSession
 from tqdm import tqdm
 
-from data import make_dataset, pre_process, utils
+from data import make_dataset, model_selection, pre_process, train_model, utils
 
 # https://github.com/psf/requests-html/issues/275#issuecomment-513992564
 session = HTMLSession(
@@ -30,17 +32,16 @@ def main():
         scraper = make_dataset.ImmowebScraper(session, last_page=3)
         # Run the data scraping and processing pipeline
         scraped_dataset = scraper.immoweb_scraping_pipeline()
-
-        print(f"Web scraping completed. Raw data saved at {scraper.path}")
-
+        # perform basic pre-processing such as map booleans, convert floats and such
         df_pre_processed = pre_process.pre_process_dataframe(scraped_dataset)
-
+        # Fetch the geo data using Google's Geocoding API
         housenumber, street, city, postal, state, lat, lng = zip(
             *[
                 pre_process.get_location_details_from_google(loc)
                 for loc in tqdm(df_pre_processed.address.unique(), position=0)
             ]
         )
+        # map the obtained addresses
         mapped_df = pre_process.map_addresses_from_google(
             df_pre_processed,
             housenumber,
@@ -51,11 +52,30 @@ def main():
             lat,
             lng,
         )
+        # filter out missing values and save dataframe for streamlit app
+        pre_processed_df = pre_process.filter_out_missing_indexes(mapped_df)
 
-        pre_process.filter_out_missing_indexes(mapped_df)
-        print(
-            f"Pre-processing completed. Data saved at {utils.Configuration.INTERIM_DATA_PATH}"
+        # prepare data for modelling
+        X, y = pre_process.prepare_data_for_modelling(pre_processed_df)
+
+        # train-test split
+        X_train, X_test, y_train, y_test = model_selection.train_test_split(
+            X,
+            y,
+            test_size=0.2,
+            random_state=utils.Configuration.seed,
         )
+        print(f"Shape of X_train: {X_train.shape}, Shape of X_test: {X_test.shape}")
+
+        # train model
+        catboost_params_optuna = pd.read_pickle(
+            utils.Configuration.GIT_DATA.joinpath("CatBoost_params.pickle")
+        )
+        model = train_model.train_catboost(X_train, y_train, catboost_params_optuna)
+        pickle.dump(
+            model, open(f"{str(pd.Timestamp.now())[:10]}_catboost_model.pickle", "wb")
+        )
+
     except Exception as e:
         # Handle exceptions here, and exit with a non-zero exit code
         print(f"Error: {e}")

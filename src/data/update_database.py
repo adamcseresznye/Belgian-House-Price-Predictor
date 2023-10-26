@@ -46,11 +46,6 @@ def connect_to_google_sheet(
         return None
 
 
-import numpy as np
-import pandas as pd
-import pygsheets
-
-
 def update_database_in_chunks(worksheet, df_to_append, chunk_size=1000):
     """
     Update a Google Sheet with data from a DataFrame in chunks.
