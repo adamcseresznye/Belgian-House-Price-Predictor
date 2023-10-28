@@ -1,5 +1,6 @@
 import gc
 import os
+from pathlib import Path
 from typing import List, Optional, Tuple
 
 import catboost
@@ -68,3 +69,58 @@ def score_prediction(y_true, y_pred):
     R2 = metrics.r2_score(y_true, y_pred)
 
     return RMSE, R2
+
+
+def save_model_performance(
+    RMSE: float,
+    R2: float,
+    path_to_folder: Path = utils.Configuration.GIT_MODEL_PERFORMANCE,
+) -> pd.DataFrame:
+    """
+    Save model performance metrics (RMSE and R2) to a Parquet file.
+
+    Args:
+        RMSE (float): Root Mean Square Error metric to be saved.
+        R2 (float): R-squared metric to be saved.
+        path_to_folder (Path, optional): The path to the folder where the Parquet file is stored.
+            Defaults to utils.Configuration.GIT_MODEL_PERFORMANCE.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing all saved model performance records.
+
+    If the Parquet file exists, it loads the existing records, appends a new record with the current date,
+    RMSE, and R2, and saves the updated records back to the file. If the file does not exist, it creates a new record and
+    saves it as the Parquet file.
+
+    Note:
+    - The Parquet file should have a structure where "date," "RMSE," and "R2" are columns.
+    - Date is recorded as a string in the format 'yyyy-mm-dd'.
+    """
+    # Define the path to the Parquet file
+    all_records = path_to_folder.joinpath("model_performance.parquet.gzip")
+
+    if all_records.is_file():
+        # If the Parquet file already exists, load its contents
+        all_records_df = pd.read_parquet(all_records)
+
+        # Create a new record with the current date and the provided RMSE and R2 values
+        new_record = pd.DataFrame(
+            {"date": str(pd.Timestamp.now())[:10], "RMSE": RMSE, "R2": R2}, index=[0]
+        )
+
+        # Concatenate the new record with the existing records
+        updated_records = pd.concat([all_records_df, new_record], ignore_index=True)
+
+        # Save the updated records to the Parquet file
+        updated_records.to_parquet(all_records, compression="gzip")
+
+        return updated_records
+    else:
+        # If the Parquet file doesn't exist, create a new record and save it
+        new_record = pd.DataFrame(
+            {"date": str(pd.Timestamp.now())[:10], "RMSE": RMSE, "R2": R2}, index=[0]
+        )
+
+        new_record.to_parquet(all_records, compression="gzip")
+
+        return new_record

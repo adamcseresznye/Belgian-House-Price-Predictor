@@ -10,7 +10,7 @@ from sklearn import model_selection
 from tqdm import tqdm
 
 from data import make_dataset, pre_process, utils
-from models import train_model
+from models import predict_model, train_model
 
 # https://github.com/psf/requests-html/issues/275#issuecomment-513992564
 session = HTMLSession(
@@ -80,7 +80,16 @@ def main():
         # save model
         model.save_model(utils.Configuration.GIT_MODEL.joinpath("catboost_model"))
         print(
-            f"The workflow has completed successfully, and the model has been saved at:{utils.Configuration.GIT_MODEL}"
+            f"The model training has completed successfully. The model has been saved at:{utils.Configuration.GIT_MODEL}"
+        )
+
+        # test model performance with the test-set
+        prediction = predict_model.predict_catboost(model=model, X=X_test)
+        RMSE, R2 = predict_model.score_prediction(y_pred=prediction, y_true=y_test)
+        predict_model.save_model_performance(RMSE, R2)
+
+        print(
+            f"The workflow has finished successfully. Test-set metrics: RMSE = {RMSE}, R2 = {R2}"
         )
 
     except Exception as e:
