@@ -6,9 +6,11 @@ from pathlib import Path
 import optuna
 import pandas as pd
 from requests_html import HTMLSession
+from sklearn import model_selection
 from tqdm import tqdm
 
-from data import make_dataset, model_selection, pre_process, train_model, utils
+from data import make_dataset, pre_process, utils
+from models import train_model
 
 # https://github.com/psf/requests-html/issues/275#issuecomment-513992564
 session = HTMLSession(
@@ -69,11 +71,16 @@ def main():
 
         # train model
         catboost_params_optuna = pd.read_pickle(
-            utils.Configuration.GIT_DATA.joinpath("CatBoost_params.pickle")
+            utils.Configuration.GIT_HYPERPARAMETERS.joinpath("CatBoost_params.pickle")
         )
+        # train model
+        print("Model training has started.")
         model = train_model.train_catboost(X_train, y_train, catboost_params_optuna)
-        pickle.dump(
-            model, open(f"{str(pd.Timestamp.now())[:10]}_catboost_model.pickle", "wb")
+
+        # save model
+        model.save_model(utils.Configuration.GIT_MODEL.joinpath("catboost_model"))
+        print(
+            f"The workflow has completed successfully, and the model has been saved at:{utils.Configuration.GIT_MODEL}"
         )
 
     except Exception as e:

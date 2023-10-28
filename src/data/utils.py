@@ -12,6 +12,7 @@ class Configuration:
     GIT_DATA = Path(__file__).parents[2].joinpath("git_data")
     GIT_MODEL = Path(__file__).parents[2].joinpath("git_model")
     GIT_HYPERPARAMETERS = Path(__file__).parents[2].joinpath("git_hyperparameters")
+    GIT_MODEL_PERFORMANCE = Path(__file__).parents[2].joinpath("git_model_performance")
     target_col = "price"
 
     features_to_keep_sales = [
