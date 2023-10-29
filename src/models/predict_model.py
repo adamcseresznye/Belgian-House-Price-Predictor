@@ -124,3 +124,71 @@ def save_model_performance(
         new_record.to_parquet(all_records, compression="gzip")
 
         return new_record
+
+
+def save_prediction_plots(truth, prediction):
+    """
+    Generate and save two plots related to model predictions and residuals.
+
+    Args:
+        truth (pandas.Series): Actual truth values.
+        prediction (pandas.Series): Model predictions.
+
+    Returns:
+        None
+
+    The function creates two plots and saves them as SVG files:
+    1. A scatter plot contrasting predicted house prices with actual house prices.
+    2. A histogram assessing the residuals from the Catboost model.
+
+    Note:
+    - The saved files will be named "fig1.svg" and "fig2.svg" in the current directory.
+    """
+    results = (
+        pd.concat(
+            [truth.reset_index(drop=True), pd.Series(prediction)], axis="columns"
+        ).rename(columns={"price": "original_values", 0: "predicted_values"})
+        # .apply(lambda x: 10**x)
+        .assign(residuals=lambda df: df.original_values - df.predicted_values)
+    )
+    fig1 = results.pipe(
+        lambda df: ggplot(df, aes("original_values", "predicted_values"))
+        + geom_point()
+        + geom_smooth()
+        + labs(
+            title="Contrasting Predicted House Prices with Actual House Prices",
+            x="log10 True Prices (EUR)",
+            y="log10 Predicted Prices (EUR)",
+            caption="https://www.immoweb.be/",
+        )
+        + theme(
+            plot_subtitle=element_text(
+                size=12, face="italic"
+            ),  # Customize subtitle appearance
+            plot_title=element_text(size=15, face="bold"),  # Customize title appearance
+        )
+        + ggsize(800, 600)
+    )
+    fig2 = (
+        results.pipe(
+            lambda df: ggplot(df, aes("residuals")) + geom_histogram(stat="bin")
+        )
+        + labs(
+            title="Assessing the Residuals from the Catboost Model",
+            subtitle=""" Normally distributed residuals imply consistent and accurate model predictions, aligning with statistical assumptions.
+            """,
+            x="Distribution of Residuals",
+            y="",
+            caption="https://www.immoweb.be/",
+        )
+        + theme(
+            plot_subtitle=element_text(
+                size=12, face="italic"
+            ),  # Customize subtitle appearance
+            plot_title=element_text(size=15, face="bold"),  # Customize title appearance
+        )
+        + ggsize(800, 600)
+    )
+    ggsave(fig1, "fig1.svg", path=".", iframe=False)
+    ggsave(fig2, "fig2.svg", path=".", iframe=False)
+    return None

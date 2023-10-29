@@ -44,6 +44,33 @@ def fetch_data() -> pd.DataFrame:
     return most_recent_data_df
 
 
+@st.cache_data
+def get_average_historical_model_performance():
+    """
+    Retrieve the average RMSE, R2 values, and the date of the most recent
+      record from historical model performance data.
+
+    Returns:
+        Tuple[float, float, str]: A tuple containing the average RMSE, average R2,
+        and the date of the most recent record.
+    """
+    # Load historical model performance data from a Parquet file
+    performance_data = pd.read_parquet(
+        utils.Configuration.GIT_MODEL_PERFORMANCE.joinpath(
+            "model_performance.parquet.gzip"
+        )
+    )
+
+    # Calculate the average RMSE and R2
+    RMSE = performance_data["RMSE"].mean()
+    R2 = performance_data["R2"].mean()
+
+    # Extract the date of the most recent record
+    date = performance_data["date"].tail(1).values[0]
+
+    return RMSE, R2, date
+
+
 @st.cache_resource
 def fetch_model() -> catboost.CatBoostRegressor:
     """
@@ -59,17 +86,29 @@ def fetch_model() -> catboost.CatBoostRegressor:
 
 
 try:
-    st.header("Define variables")
+    st.header("Generate Home Price Prediction")
     st.image(
-        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/408003083.jpg?k=c49b5c4a2346b3ab002b9d1b22dbfb596cee523b53abef2550d0c92d0faf2d8b&o=&hp=1"
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/408003083.jpg?k=c49b5c4a2346b3ab002b9d1b22dbfb596cee523b53abef2550d0c92d0faf2d8b&o=&hp=1",
+        caption="Photo by Stephen Phillips - Hostreviews.co.uk on UnSplash",
+        use_column_width="always",
     )
+    st.subheader("Input Feature Values")
 
+    AVG_RMSE, AVG_R2, last_train_date = get_average_historical_model_performance()
+    st.sidebar.header("Historical Model Performance Summary")
+    st.sidebar.write(
+        f"""* Last Model Training Date: **{last_train_date}**
+* Average Test Set RMSE: **{AVG_RMSE:.4f}**
+* Average Test Set R2: **{AVG_R2:.4f}**
+
+"""
+    )
     most_recent_data_df = fetch_data()
 
     col1, col2, col3 = st.columns(spec=3, gap="large")
 
     with col1:
-        st.markdown("### Geography")
+        st.markdown("#### Geography")
         state = st.selectbox(
             "In which region is the house located?",
             ((most_recent_data_df.state.unique())),
@@ -89,7 +128,7 @@ try:
         )
 
     with col2:
-        st.markdown("### Construction")
+        st.markdown("#### Construction")
         building_condition = st.selectbox(
             "What is the condition of the building?",
             ((most_recent_data_df.building_condition.unique())),
@@ -115,7 +154,7 @@ try:
         )
 
     with col3:
-        st.markdown("### Energy, Taxes")
+        st.markdown("#### Energy, Taxes")
         yearly_theoretical_total_energy_consumption = st.number_input(
             "What is the estimated annual total energy consumption for this property?",
             step=1.0,
@@ -152,11 +191,17 @@ try:
     }
     X_test = pd.DataFrame(data)
 
-    st.table(X_test)
-
     model = fetch_model()
-    prediction = predict_model.predict_catboost(model=model, X=X_test)
-    st.success(f"The predicted price for the house is {10** prediction[0]:,.0f} EUR")
+
+    click = st.button("Predict house price", key="start-button")
+
+    if click:
+        prediction = predict_model.predict_catboost(model=model, X=X_test)
+        st.success(
+            f"The predicted price for the house is {10** prediction[0]:,.0f} EUR"
+        )
+    else:
+        st.info("Click here for house price prediction.", icon="ℹ️")
 
 
 except Exception as e:
