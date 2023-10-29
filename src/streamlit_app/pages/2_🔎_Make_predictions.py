@@ -1,8 +1,8 @@
 import catboost
 import numpy as np
 import pandas as pd
-
 import streamlit as st
+
 from data import utils
 from models import predict_model
 
@@ -60,6 +60,10 @@ def fetch_model() -> catboost.CatBoostRegressor:
 
 try:
     st.header("Define variables")
+    st.image(
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/408003083.jpg?k=c49b5c4a2346b3ab002b9d1b22dbfb596cee523b53abef2550d0c92d0faf2d8b&o=&hp=1"
+    )
+
     most_recent_data_df = fetch_data()
 
     col1, col2, col3 = st.columns(spec=3, gap="large")
@@ -118,7 +122,7 @@ try:
             format="%.1f",
         )
         primary_energy_consumption = st.number_input(
-            "mption: What is the primary energy consumption associated with this property?",
+            "What is the primary energy consumption associated with this property?",
             step=1.0,
             format="%.1f",
         )
@@ -152,7 +156,7 @@ try:
 
     model = fetch_model()
     prediction = predict_model.predict_catboost(model=model, X=X_test)
-    st.write(f"The predicted price for the house is {10** prediction[0]:,.0f} EUR")
+    st.success(f"The predicted price for the house is {10** prediction[0]:,.0f} EUR")
 
 
 except Exception as e:
