@@ -93,6 +93,10 @@ try:
         use_column_width="always",
     )
     st.subheader("Input Feature Values")
+    st.markdown(
+        """Please enter the input features below. While you're not required to provide values for all the listed variables,
+                 for the most accurate predictions based on what the model has learned, try to be as specific as possible."""
+    )
 
     AVG_RMSE, AVG_R2, last_train_date = get_average_historical_model_performance()
     st.sidebar.header("Historical Model Performance Summary")
@@ -105,71 +109,79 @@ try:
     )
     most_recent_data_df = fetch_data()
 
-    col1, col2, col3 = st.columns(spec=3, gap="large")
+    with st.expander("click to expand"):
+        col1, col2, col3 = st.columns(spec=3, gap="large")
 
-    with col1:
-        st.markdown("#### Geography")
-        state = st.selectbox(
-            "In which region is the house located?",
-            ((most_recent_data_df.state.unique())),
-        )
-        city = st.selectbox(
-            "In which city is it situated?", ((most_recent_data_df.city.unique()))
-        )
-        street = st.selectbox(
-            "On which street is it situated?", ((most_recent_data_df.street.unique()))
-        )
+        with col1:
+            st.markdown("#### Geography")
+            state = st.selectbox(
+                "In which region is the house located?",
+                ((most_recent_data_df.state.unique())),
+            )
+            city = st.selectbox(
+                "In which city is it situated?", ((most_recent_data_df.city.unique()))
+            )
+            street = st.selectbox(
+                "On which street is it situated?",
+                ((most_recent_data_df.street.unique())),
+            )
 
-        lat = st.number_input(
-            "What is the estimated latitude of the location?", step=1.0, format="%.4f"
-        )
-        lng = st.number_input(
-            "What is the estimated longitude of the location?", step=1.0, format="%.4f"
-        )
+            lat = st.number_input(
+                "What is the estimated latitude of the location?",
+                step=1.0,
+                format="%.4f",
+            )
+            lng = st.number_input(
+                "What is the estimated longitude of the location?",
+                step=1.0,
+                format="%.4f",
+            )
 
-    with col2:
-        st.markdown("#### Construction")
-        building_condition = st.selectbox(
-            "What is the condition of the building?",
-            ((most_recent_data_df.building_condition.unique())),
-        )
-        bedrooms = st.number_input(
-            "How many bedrooms does the property have?", step=1.0, format="%.0f"
-        )
-        bathrooms = st.number_input(
-            "How many bathrooms does the property have?", step=1.0, format="%.0f"
-        )
-        number_of_frontages = st.number_input(
-            "What is the count of frontages for this property?", step=1.0, format="%.0f"
-        )
-        surface_of_the_plot = st.number_input(
-            "What is the total land area associated with this property in m2?",
-            step=1.0,
-            format="%.1f",
-        )
-        living_area = st.number_input(
-            "What is the living area or the space designated for living within the property in m2?",
-            step=1.0,
-            format="%.1f",
-        )
+        with col2:
+            st.markdown("#### Construction")
+            building_condition = st.selectbox(
+                "What is the condition of the building?",
+                ((most_recent_data_df.building_condition.unique())),
+            )
+            bedrooms = st.number_input(
+                "How many bedrooms does the property have?", step=1.0, format="%.0f"
+            )
+            bathrooms = st.number_input(
+                "How many bathrooms does the property have?", step=1.0, format="%.0f"
+            )
+            number_of_frontages = st.number_input(
+                "What is the count of frontages for this property?",
+                step=1.0,
+                format="%.0f",
+            )
+            surface_of_the_plot = st.number_input(
+                "What is the total land area associated with this property in m2?",
+                step=1.0,
+                format="%.1f",
+            )
+            living_area = st.number_input(
+                "What is the living area or the space designated for living within the property in m2?",
+                step=1.0,
+                format="%.1f",
+            )
 
-    with col3:
-        st.markdown("#### Energy, Taxes")
-        yearly_theoretical_total_energy_consumption = st.number_input(
-            "What is the estimated annual total energy consumption for this property?",
-            step=1.0,
-            format="%.1f",
-        )
-        primary_energy_consumption = st.number_input(
-            "What is the primary energy consumption associated with this property?",
-            step=1.0,
-            format="%.1f",
-        )
-        cadastral_income = st.number_input(
-            "What is the cadastral income or property tax assessment value for this property?",
-            step=1.0,
-            format="%.1f",
-        )
+        with col3:
+            st.markdown("#### Energy, Taxes")
+            yearly_theoretical_total_energy_consumption = st.number_input(
+                "What is the estimated annual total energy consumption for this property?",
+                step=1.0,
+                format="%.1f",
+            )
+            primary_energy_consumption = st.number_input(
+                "What is the primary energy consumption associated with this property?",
+                step=1.0,
+                format="%.1f",
+            )
+            cadastral_income = st.number_input(
+                "What is the cadastral income or property tax assessment value for this property?",
+                step=1.0,
+                format="%.1f",
+            )
 
     data = {
         "bedrooms": [bedrooms],
@@ -198,10 +210,8 @@ try:
     if click:
         prediction = predict_model.predict_catboost(model=model, X=X_test)
         st.success(
-            f"The predicted price for the house is {10** prediction[0]:,.0f} EUR"
+            f"The predicted price for the house is {10** prediction[0]:,.0f} EUR."
         )
-    else:
-        st.info("Click here for house price prediction.", icon="ℹ️")
 
 
 except Exception as e:
