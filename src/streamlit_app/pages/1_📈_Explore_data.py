@@ -7,6 +7,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 from lets_plot import *
 from lets_plot.frontend_context._configuration import _as_html
+from lets_plot.geo_data import *
 from lets_plot.mapping import as_discrete
 from lets_plot.plot.core import PlotSpec
 from lets_plot.plot.plot import GGBunch
@@ -266,7 +267,7 @@ try:
     )
 
     option = st.selectbox(
-        "What specific factor are you interested in exploring?",
+        "**What specific factor are you interested in exploring?**",
         (variables_to_choose_from),
         index=None,
         placeholder="Select a variable...",
@@ -283,6 +284,13 @@ try:
             + geom_boxplot()
             + flavor_darcula()
             + scale_y_log10()
+            + labs(
+                title=f"Analyzing the Effect of {option.replace('_', ' ').title()} on House Prices",
+                x=f"{option.replace('_', ' ').title()}",
+                y="Price in Log10-Scale (EUR)",
+                caption="Source : https://www.immoweb.be/",
+            )
+            + theme(plot_title=element_text(size=14.5, face="bold"))
             + ggsize(700, 500)
         )
         st_letsplot(box)
@@ -290,13 +298,23 @@ try:
         linechart = processed_most_recent_data_df[[option, "price"]].pipe(
             lambda df: ggplot(df, aes(option, "price"))
             + geom_point()
+            + geom_smooth(deg=2)
             + scale_y_log10()
             + flavor_darcula()
             + ggsize(700, 500)
+            + labs(
+                title=f"Analyzing the Effect of {option.replace('_', ' ').title()} on House Prices",
+                x=f"{option.replace('_', ' ').title()}",
+                y="Price in Log10-Scale (EUR)",
+                caption="Source : https://www.immoweb.be/",
+            )
+            + theme(plot_title=element_text(size=14.5, face="bold"))
+            + ggsize(700, 500)
         )
+
         st_letsplot(linechart)
     else:
-        st.write("Make your selection.")
+        st.info("Make your selection.")
 
 
 except Exception as e:
