@@ -100,17 +100,14 @@ def prepare_data_for_modelling(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Serie
     Prepare data for machine learning modeling.
 
     This function takes a DataFrame and prepares it for machine learning by performing the following steps:
-    1. Randomly shuffles the rows of the DataFrame.
-    2. Converts the 'price' column to the base 10 logarithm.
-    3. Fills missing values in categorical variables with 'missing value'.
-    4. Separates the features (X) and the target (y).
-    5. Identifies and filters out outlier values based on LocalOutlierFactor.
+    1. Fills missing values in categorical variables with 'missing value'.
+    2. Identifies and filters out outlier values based on LocalOutlierFactor.
 
     Parameters:
     - df (pd.DataFrame): The input DataFrame containing the dataset.
 
     Returns:
-    - Tuple[pd.DataFrame, pd.Series]: A tuple containing the prepared features (X) and the target (y).
+    - pd.DataFrame: The prepared DataFrame.
 
     Example use case:
     ```python
@@ -118,16 +115,16 @@ def prepare_data_for_modelling(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Serie
     df = load_data()
 
     # Prepare the data for modeling
-    X, y = prepare_data_for_modelling(df)
+    prepared_data = prepare_data_for_modelling(df)
 
-    # Now you can use X and y for machine learning tasks.
+    # Now you can use prepared_data for machine learning tasks.
     ```
 
     Args:
         df (pd.DataFrame): The input DataFrame containing the dataset.
 
     Returns:
-        Tuple[pd.DataFrame, pd.Series]: A tuple containing the prepared features (X) and the target (y).
+        pd.DataFrame: The prepared DataFrame.
     """
 
     # Fill missing categorical variables with "missing value"
@@ -174,10 +171,12 @@ def fetch_data() -> pd.DataFrame:
 
 
 try:
-    most_recent_data_df = fetch_data()
+    st.header("Explore the data")
+
+    with st.spinner("Loading data..."):
+        most_recent_data_df = fetch_data()
     processed_most_recent_data_df = prepare_data_for_modelling(most_recent_data_df)
 
-    st.header("Explore the data")
     st.map(
         processed_most_recent_data_df[["lat", "lng"]]
         .rename(columns={"lng": "lon"})
@@ -189,7 +188,7 @@ try:
     )
     st.markdown(
         """Start by exploring the charts below to gain insights into the relationships between
-                various variables and how they impact prices. Feel free to dive in and uncover more from the dataset."""
+                various variables and how they impact prices. Dive in and uncover more from the dataset."""
     )
 
     variables_to_choose_from = processed_most_recent_data_df.drop(
@@ -264,3 +263,15 @@ try:
 
 except Exception as e:
     st.error(e)
+
+with st.sidebar:
+    st.subheader("📢 Get in touch 📢")
+    st.markdown(
+        "[![Title]('https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg')]('https://www.linkedin.com/in/adam-cseresznye')"
+    )
+    st.markdown(
+        "[![Title]('https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png')]('https://github.com/adamcseresznye')"
+    )
+    st.markdown(
+        "[![Title]('https://about.twitter.com/content/dam/about-twitter/x/brand-toolkit/logo-black.png.twimg.1920.png')]('https://twitter.com/csenye22')"
+    )

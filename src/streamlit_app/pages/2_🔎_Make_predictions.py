@@ -100,7 +100,7 @@ try:
     )
     st.subheader("Input Feature Values")
     st.markdown(
-        """Please enter the input features below. While you're not required to provide values for all the listed variables,
+        """Please enter the input features below. While you're _not required_ to provide values for all the listed variables,
                  for the most accurate predictions based on what the model has learned, try to be as specific as possible."""
     )
 
@@ -113,7 +113,8 @@ try:
 
 """
     )
-    most_recent_data_df = fetch_data()
+    with st.spinner("Loading data..."):
+        most_recent_data_df = fetch_data()
 
     with st.expander("click to expand"):
         col1, col2, col3 = st.columns(spec=3, gap="large")
@@ -222,3 +223,15 @@ try:
 
 except Exception as e:
     st.error(e)
+
+with st.sidebar:
+    st.subheader("📢 Get in touch 📢")
+    st.markdown(
+        "[![Title]('https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg')]('https://www.linkedin.com/in/adam-cseresznye')"
+    )
+    st.markdown(
+        "[![Title]('https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png')]('https://github.com/adamcseresznye')"
+    )
+    st.markdown(
+        "[![Title]('https://about.twitter.com/content/dam/about-twitter/x/brand-toolkit/logo-black.png.twimg.1920.png')]('https://twitter.com/csenye22')"
+    )
