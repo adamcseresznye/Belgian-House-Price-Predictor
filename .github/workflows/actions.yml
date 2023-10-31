@@ -8,6 +8,9 @@ on:
 jobs:
   run_workflow:
     runs-on: ubuntu-latest
+
+    permissions:
+        contents: write
     steps:
       - name: checkout repo content
         uses: actions/checkout@v2
@@ -38,3 +41,6 @@ jobs:
           touch ${{ github.workspace }}/data/raw/make_dataset_error.log
           touch ${{ github.workspace }}/data/interim/build_features_error.log
           python src/main.py
+
+      # Commit all changed files back to the repository
+      - uses: stefanzweifel/git-auto-commit-action@v5
