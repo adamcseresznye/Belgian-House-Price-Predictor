@@ -1,80 +1,25 @@
 from typing import List, Optional, Set, Tuple, Union
 
-import catboost
 import numpy as np
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import statsmodels.api as sm
 import streamlit as st
 import streamlit.components.v1 as components
-from lets_plot import *
-from lets_plot.frontend_context._configuration import _as_html
-from lets_plot.geo_data import *
-from lets_plot.mapping import as_discrete
-from lets_plot.plot.core import PlotSpec
-from lets_plot.plot.plot import GGBunch
 from sklearn import compose, impute, neighbors, pipeline, preprocessing
 
 from data import pre_process, utils
 
-
-def st_letsplot(plot, scrolling=True):
-    """Embed a Let's Plot object within Streamlit app
-
-    Parameters
-    ----------
-    plot:
-        Let's Plot object
-    scrolling: bool
-        If content is larger than iframe size, provide scrollbars?
-
-    Example
-    -------
-    >>> st_letsplot(p)
-    """
-
-    plot_dict = plot.as_dict()
-    if isinstance(plot, PlotSpec):
-        width, height = get_ggsize_or_default(plot_dict, default=500)
-    elif isinstance(plot, GGBunch):
-        # the inner list comprehension is a list of (width, height) tuples
-        # the outer consists of two elements [sum(widths), sum(heights)]
-        width, height = [
-            sum(y)
-            for y in zip(
-                *[
-                    get_ggsize_or_default(x["feature_spec"], default=500)
-                    for x in plot_dict["items"]
-                ]
-            )
-        ]
-    else:
-        height = 500
-        width = 500
-
-    # 20 an aribtrary pad to remove scrollbars from iframe, consider if worth removing
-    return components.html(
-        _as_html(plot_dict),
-        height=height + 20,
-        width=width + 20,
-        scrolling=scrolling,
-    )
-
-
-def get_ggsize_or_default(plot_dict, default=500) -> (int, int):
-    """
-    Returns a tuple consisting of the width and height of the plot
-    Lookup if there is a ggsize specification. If not return default value.
-    :param plot_dict:
-    :param default:
-    :return: width, height
-    """
-    if "ggsize" in plot_dict.keys():
-        return plot_dict["ggsize"]["width"], plot_dict["ggsize"]["height"]
-    return default, default
-
-
 st.set_page_config(
     page_title="Explore the data",
     page_icon="📈",
+    initial_sidebar_state="expanded",
+    menu_items={
+        "Get Help": "https://adamcseresznye.github.io/blog/",
+        "Report a bug": "https://github.com/adamcseresznye/house_price_prediction",
+        "About": "Explore and Predict Belgian House Prices with Immoweb Data and CatBoost!",
+    },
 )
 
 
@@ -273,46 +218,46 @@ try:
         placeholder="Select a variable...",
     )
     if option in categorical_variables:
-        box = processed_most_recent_data_df[[option, "price"]].pipe(
-            lambda df: ggplot(
-                df,
-                aes(
-                    as_discrete(option, order=1, order_by="..middle.."),
-                    "price",
-                ),
-            )
-            + geom_boxplot()
-            + flavor_darcula()
-            + scale_y_log10()
-            + labs(
-                title=f"Analyzing the Effect of {option.replace('_', ' ').title()} on House Prices",
-                x=f"{option.replace('_', ' ').title()}",
-                y="Price in Log10-Scale (EUR)",
-                caption="Source : https://www.immoweb.be/",
-            )
-            + theme(plot_title=element_text(size=14.5, face="bold"))
-            + ggsize(700, 500)
+        sorted_index = (
+            processed_most_recent_data_df.groupby(option)
+            .price.median()
+            .sort_values()
+            .index.tolist()
         )
-        st_letsplot(box)
-    elif option in numerical_variables:
-        linechart = processed_most_recent_data_df[[option, "price"]].pipe(
-            lambda df: ggplot(df, aes(option, "price"))
-            + geom_point()
-            + geom_smooth(deg=2)
-            + scale_y_log10()
-            + flavor_darcula()
-            + ggsize(700, 500)
-            + labs(
-                title=f"Analyzing the Effect of {option.replace('_', ' ').title()} on House Prices",
-                x=f"{option.replace('_', ' ').title()}",
-                y="Price in Log10-Scale (EUR)",
-                caption="Source : https://www.immoweb.be/",
-            )
-            + theme(plot_title=element_text(size=14.5, face="bold"))
-            + ggsize(700, 500)
+        boxplot = px.box(
+            processed_most_recent_data_df,
+            x=option,
+            y="price",
+            template="plotly_dark",
+            log_y=True,
+            category_orders=sorted_index,
+            title=f"Analyzing the Effect of {option.replace('_', ' ').title()} on House Prices",
+            labels={
+                "price": "Price in Log10-Scale (EUR)",
+                option: f"{option.replace('_', ' ').title()}",
+            },
         )
+        boxplot.update_xaxes(categoryorder="array", categoryarray=sorted_index)
 
-        st_letsplot(linechart)
+        st.plotly_chart(boxplot, use_container_width=True, theme="streamlit")
+
+    elif option in numerical_variables:
+        scatter_plot = px.scatter(
+            processed_most_recent_data_df,
+            x=option,
+            y="price",
+            trendline="lowess",
+            title=f"Analyzing the Effect of {option.replace('_', ' ').title()} on House Prices",
+            trendline_color_override="#c91e01",
+            opacity=0.5,
+            height=500,
+            labels={
+                option: option.replace("_", " ").title(),
+                "price": "Price in Log10-Scale (EUR)",
+            },
+            log_y=True,
+        )
+        st.plotly_chart(scatter_plot, use_container_width=True, theme="streamlit")
     else:
         st.info("Make your selection.")
 

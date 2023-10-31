@@ -9,6 +9,12 @@ from models import predict_model
 st.set_page_config(
     page_title="Make predictions",
     page_icon="🔎",
+    initial_sidebar_state="expanded",
+    menu_items={
+        "Get Help": "https://adamcseresznye.github.io/blog/",
+        "Report a bug": "https://github.com/adamcseresznye/house_price_prediction",
+        "About": "Explore and Predict Belgian House Prices with Immoweb Data and CatBoost!",
+    },
 )
 
 
