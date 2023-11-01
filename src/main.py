@@ -31,7 +31,7 @@ def main():
         # Use the get_last_page_number_from_url function to retrieve the last page number
         last_page_number = make_dataset.get_last_page_number_from_url(session=session)
         # Create an instance of the ImmowebScraper class
-        scraper = make_dataset.ImmowebScraper(session, last_page=3)
+        scraper = make_dataset.ImmowebScraper(session, last_page=last_page_number)
         # Run the data scraping and processing pipeline
         scraped_dataset = scraper.immoweb_scraping_pipeline()
         # perform basic pre-processing such as map booleans, convert floats and such

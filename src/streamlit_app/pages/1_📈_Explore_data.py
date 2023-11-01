@@ -181,7 +181,7 @@ try:
         processed_most_recent_data_df[["lat", "lng"]]
         .rename(columns={"lng": "lon"})
         .dropna(how="all")
-        .sample(500, random_state=42)
+        .sample(frac=0.15, random_state=42)
     )
     st.caption(
         "A selection of 500 locations from where the ads were collected. Take a look and see if any of them seem familiar to you."
