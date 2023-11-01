@@ -76,7 +76,7 @@ target/
 .ipynb_checkpoints/
 
 # exclude data from source control by default
-/data/
+# /data/
 
 # exclude credentials.py in src folder from source control
 /src/creds.py
