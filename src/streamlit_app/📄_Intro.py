@@ -1,3 +1,4 @@
+import base64
 import sys
 from pathlib import Path
 
@@ -20,6 +21,13 @@ st.set_page_config(
 )
 
 
+def render_svg(svg):
+    """Renders the given svg string."""
+    b64 = base64.b64encode(svg.encode("utf-8")).decode("utf-8")
+    html = r'<img src="data:image/svg+xml;base64,%s"/>' % b64
+    st.write(html, unsafe_allow_html=True)
+
+
 st.write("# Forecasting Belgian Property Prices with CatBoost!")
 
 st.subheader("Introduction")
@@ -33,7 +41,7 @@ st.markdown(
 )
 
 file_path = Path(__file__).parent
-image_path = file_path.joinpath("diagram.jpg")
+image_path = file_path.joinpath("diagram.png")
 image = Image.open(image_path)
 
 st.image(
@@ -81,14 +89,15 @@ st.caption(
            It is intended for educational purposes only. Any use of the information for decision-making or financial
            purposes is at your own discretion and risk."""
 )
-with st.sidebar:
-    st.subheader("📢 Get in touch 📢")
-    st.markdown(
-        "[![Title]('https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg')]('https://www.linkedin.com/in/adam-cseresznye')"
-    )
-    st.markdown(
-        "[![Title]('https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png')]('https://github.com/adamcseresznye')"
-    )
-    st.markdown(
-        "[![Title]('https://about.twitter.com/content/dam/about-twitter/x/brand-toolkit/logo-black.png.twimg.1920.png')]('https://twitter.com/csenye22')"
-    )
+
+st.sidebar.subheader("📢 Get in touch 📢")
+cols1, cols2, cols3 = st.sidebar.columns(3)
+cols1.markdown(
+    "[![Foo](https://cdn3.iconfinder.com/data/icons/picons-social/57/11-linkedin-48.png)](https://www.linkedin.com/in/adam-cseresznye)"
+)
+cols2.markdown(
+    "[![Foo](https://cdn1.iconfinder.com/data/icons/picons-social/57/github_rounded-48.png)](https://github.com/adamcseresznye)"
+)
+cols3.markdown(
+    "[![Foo](https://cdn2.iconfinder.com/data/icons/threads-by-instagram/24/x-logo-twitter-new-brand-48.png)](https://twitter.com/csenye22)"
+)

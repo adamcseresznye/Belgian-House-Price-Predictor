@@ -268,14 +268,14 @@ try:
 except Exception as e:
     st.error(e)
 
-with st.sidebar:
-    st.subheader("📢 Get in touch 📢")
-    st.markdown(
-        "[![Title]('https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg')]('https://www.linkedin.com/in/adam-cseresznye')"
-    )
-    st.markdown(
-        "[![Title]('https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png')]('https://github.com/adamcseresznye')"
-    )
-    st.markdown(
-        "[![Title]('https://about.twitter.com/content/dam/about-twitter/x/brand-toolkit/logo-black.png.twimg.1920.png')]('https://twitter.com/csenye22')"
-    )
+st.sidebar.subheader("📢 Get in touch 📢")
+cols1, cols2, cols3 = st.sidebar.columns(3)
+cols1.markdown(
+    "[![Foo](https://cdn3.iconfinder.com/data/icons/picons-social/57/11-linkedin-48.png)](https://www.linkedin.com/in/adam-cseresznye)"
+)
+cols2.markdown(
+    "[![Foo](https://cdn1.iconfinder.com/data/icons/picons-social/57/github_rounded-48.png)](https://github.com/adamcseresznye)"
+)
+cols3.markdown(
+    "[![Foo](https://cdn2.iconfinder.com/data/icons/threads-by-instagram/24/x-logo-twitter-new-brand-48.png)](https://twitter.com/csenye22)"
+)
