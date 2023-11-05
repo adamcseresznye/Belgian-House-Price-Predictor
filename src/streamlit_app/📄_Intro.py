@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import streamlit as st
+from PIL import Image
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
@@ -31,8 +32,10 @@ st.markdown(
 """
 )
 
+image = Image.open("Diagram.jpg")
+
 st.image(
-    "diagram.svg",
+    image,
     caption="Data Acquisition, Processing, Model Training, and Performance Testing Workflow.",
 )
 
