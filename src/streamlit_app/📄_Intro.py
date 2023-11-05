@@ -32,7 +32,9 @@ st.markdown(
 """
 )
 
-image = Image.open("diagram.jpg")
+file_path = Path(__file__).parent
+image_path = file_path.joinpath("diagram.jpg")
+image = Image.open(image_path)
 
 st.image(
     image,
