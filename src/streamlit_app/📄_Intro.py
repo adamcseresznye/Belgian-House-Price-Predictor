@@ -1,9 +1,6 @@
-import datetime
-
 import numpy as np
 import pandas as pd
 import streamlit as st
-from PIL import Image
 
 st.set_page_config(
     page_title="House Price Prediction",
@@ -16,6 +13,7 @@ st.set_page_config(
     },
 )
 
+
 st.write("# Forecasting Belgian Property Prices with CatBoost!")
 
 st.subheader("Introduction")
@@ -27,9 +25,9 @@ st.markdown(
     Explore the housing market and make informed choices with our prediction tool.
 """
 )
-image = Image.open("Diagram.jpg")
+
 st.image(
-    image,
+    "diagram.svg",
     caption="Data Acquisition, Processing, Model Training, and Performance Testing Workflow.",
 )
 
@@ -57,6 +55,17 @@ st.markdown(
             feel free to make predictions using the features available on the _"Make predictions"_ page and assess your accuracy based on our model.
             Have fun!🎈🎉😊🐍💻🎈"""
 )
+
+st.markdown(
+    """**Planned Enhancements**:
+- :white_check_mark: Collaborate with the Kaggle community to share initial data and gather insights on potential model improvements and data preprocessing techniques for enhanced predictions.
+- :construction: Incorporate confidence intervals into predictions.
+- :construction: Implement data upload to a database for enhanced data management.
+- :construction: Explore the inclusion of advertisement time to account for seasonality in the model.
+- :construction: Enhance loading speed.
+"""
+)
+
 st.caption(
     """Disclaimer: The developer is not liable for the information provided by this app.
            It is intended for educational purposes only. Any use of the information for decision-making or financial
