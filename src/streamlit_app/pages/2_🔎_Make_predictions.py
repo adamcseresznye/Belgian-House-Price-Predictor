@@ -9,7 +9,7 @@ import streamlit as st
 from data import utils
 from models import predict_model
 
-sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 
 st.set_page_config(

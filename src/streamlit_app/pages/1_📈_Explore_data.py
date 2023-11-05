@@ -13,7 +13,7 @@ from sklearn import compose, impute, neighbors, pipeline, preprocessing
 
 from data import pre_process, utils
 
-sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 st.set_page_config(
     page_title="Explore the data",
