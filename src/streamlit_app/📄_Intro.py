@@ -1,6 +1,11 @@
+import sys
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import streamlit as st
+
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 st.set_page_config(
     page_title="House Price Prediction",
