@@ -1,3 +1,5 @@
+import sys
+from pathlib import Path
 from typing import List, Optional, Set, Tuple, Union
 
 import numpy as np
@@ -10,6 +12,8 @@ import streamlit.components.v1 as components
 from sklearn import compose, impute, neighbors, pipeline, preprocessing
 
 from data import pre_process, utils
+
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
 st.set_page_config(
     page_title="Explore the data",

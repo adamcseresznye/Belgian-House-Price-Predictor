@@ -32,7 +32,7 @@ st.markdown(
 """
 )
 
-image = Image.open("Diagram.jpg")
+image = Image.open("diagram.jpg")
 
 st.image(
     image,

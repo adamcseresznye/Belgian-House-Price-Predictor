@@ -1,3 +1,6 @@
+import sys
+from pathlib import Path
+
 import catboost
 import numpy as np
 import pandas as pd
@@ -5,6 +8,9 @@ import streamlit as st
 
 from data import utils
 from models import predict_model
+
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+
 
 st.set_page_config(
     page_title="Make predictions",
