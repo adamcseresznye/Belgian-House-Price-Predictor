@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from typing import Tuple
 
 import catboost
 import numpy as np
@@ -57,7 +58,7 @@ def fetch_data() -> pd.DataFrame:
 
 
 @st.cache_data
-def get_average_historical_model_performance():
+def get_historical_model_performance() -> Tuple[float, float, float]:
     """
     Retrieve the average RMSE, R2 values, and the date of the most recent
       record from historical model performance data.
@@ -81,6 +82,29 @@ def get_average_historical_model_performance():
     date = performance_data["date"].tail(1).values[0]
 
     return RMSE, R2, date
+
+
+@st.cache_data
+def get_st_metrics() -> Tuple[float, float]:
+    """
+    Load historical model performance data from a Parquet file and extract RMSE values.
+
+    Returns:
+        Tuple[float, float]: A tuple containing the RMSE value for the most recent record
+        and the second-to-last record.
+    """
+    # Load historical model performance data from a Parquet file
+    performance_data = pd.read_parquet(
+        utils.Configuration.GIT_MODEL_PERFORMANCE.joinpath(
+            "model_performance.parquet.gzip"
+        )
+    )
+
+    # Extract the date of the most recent record
+    second_to_last_RMSE = performance_data["RMSE"].tail(2).values[0]
+    last_RMSE = performance_data["RMSE"].tail(1).values[0]
+
+    return last_RMSE, second_to_last_RMSE
 
 
 @st.cache_resource
@@ -121,16 +145,23 @@ try:
         """Please enter the input features below. While you're _not required_ to provide values for all the listed variables,
                  for the most accurate predictions based on what the model has learned, try to be as specific as possible."""
     )
-
-    AVG_RMSE, AVG_R2, last_train_date = get_average_historical_model_performance()
-    st.sidebar.header("Historical Model Performance Summary")
-    st.sidebar.write(
-        f"""* Last Model Training Date: **{last_train_date}**
+    with st.sidebar:
+        AVG_RMSE, AVG_R2, last_train_date = get_historical_model_performance()
+        st.header("Historical Model Performance Summary")
+        last_RMSE, second_to_last_RMSE = get_st_metrics()
+        st.metric(
+            value=f"{last_RMSE:.4f}",
+            delta=f"{last_RMSE - second_to_last_RMSE:.4f}",
+            label="Last Test Set RMSE",
+            delta_color="inverse",
+        )
+        st.write(
+            f"""* Last Model Training Date: **{last_train_date}**
 * Average Test Set RMSE: **{AVG_RMSE:.4f}**
 * Average Test Set R2: **{AVG_R2:.4f}**
 
-"""
-    )
+    """
+        )
     with st.spinner("Loading data..."):
         most_recent_data_df = fetch_data()
 

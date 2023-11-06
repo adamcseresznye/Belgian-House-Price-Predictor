@@ -20,7 +20,7 @@ st.set_page_config(
 )
 
 
-st.write("# Forecasting Belgian Property Prices with CatBoost!")
+st.write("# Forecast Belgian Property Prices with CatBoost!")
 
 st.subheader("Introduction")
 
@@ -68,7 +68,7 @@ st.markdown(
 
 st.markdown(
     """**Planned Enhancements**:
-- :white_check_mark: Collaborate with the Kaggle community to share initial data and gather insights on potential model improvements and data preprocessing techniques for enhanced predictions.
+- :white_check_mark: Collaborate with the [Kaggle](https://www.kaggle.com/datasets/unworried1686/belgian-property-prices-2023/data) community to share initial data and gather insights on potential model improvements and data preprocessing techniques for enhanced predictions.
 - :construction: Incorporate confidence intervals into predictions.
 - :construction: Implement data upload to a database for enhanced data management.
 - :construction: Explore the inclusion of advertisement time to account for seasonality in the model.

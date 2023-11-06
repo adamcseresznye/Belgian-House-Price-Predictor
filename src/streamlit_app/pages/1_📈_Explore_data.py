@@ -190,6 +190,7 @@ try:
     st.caption(
         "A selection of 500 locations from where the ads were collected. Take a look and see if any of them seem familiar to you."
     )
+
     st.markdown(
         """Start by exploring the charts below to gain insights into the relationships between
                 various variables and how they impact prices. Dive in and uncover more from the dataset."""
