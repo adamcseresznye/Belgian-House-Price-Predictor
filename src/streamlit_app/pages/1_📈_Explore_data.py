@@ -188,7 +188,7 @@ try:
         .sample(frac=0.15, random_state=42)
     )
     st.caption(
-        "A selection of 500 locations from where the ads were collected. Take a look and see if any of them seem familiar to you."
+        "A selection of ~500 locations from where the ads were collected. Take a look and see if any of them seem familiar to you."
     )
 
     st.markdown(
