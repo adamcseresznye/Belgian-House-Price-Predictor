@@ -57,7 +57,6 @@ def fetch_data() -> pd.DataFrame:
     return most_recent_data_df
 
 
-@st.cache_data
 def get_historical_model_performance() -> Tuple[float, float, float]:
     """
     Retrieve the average RMSE, R2 values, and the date of the most recent
@@ -84,7 +83,6 @@ def get_historical_model_performance() -> Tuple[float, float, float]:
     return RMSE, R2, date
 
 
-@st.cache_data
 def get_st_metrics() -> Tuple[float, float]:
     """
     Load historical model performance data from a Parquet file and extract RMSE values.
