@@ -4,7 +4,7 @@ geocoder==1.38.1
 geopy==2.4.0
 ipython==8.15.0
 lets_plot==4.0.1
-lxml
+lxml==4.9.1
 matplotlib==3.8.0
 numpy==1.25.2
 optuna==3.4.0
